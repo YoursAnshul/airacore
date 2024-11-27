@@ -1,0 +1,9 @@
+
+aircore/mvnw
+aircore/mvnw.cmd
+aircore/.gitattributes
+aircore/.mvn/wrapper/maven-wrapper.properties
+Backend/aircore/mvnw.cmd
+Backend/aircore/mvnw
+Backend/aircore/.mvn/wrapper/maven-wrapper.properties
+Backend/aircore/.gitattributes
