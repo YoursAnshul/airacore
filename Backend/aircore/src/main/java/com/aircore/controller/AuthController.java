@@ -13,7 +13,10 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.aircore.configuration.JwtUtil;
+import com.aircore.entity.Menu;
+import com.aircore.entity.Role;
 import com.aircore.entity.User;
+import com.aircore.repository.RoleRepository;
 import com.aircore.repository.UserRepository;
 import com.aircore.response.TokenResponse;
 
@@ -31,6 +34,9 @@ public class AuthController {
     private AuthenticationManager authenticationManager;
 
     @Autowired
+    private RoleRepository roleRepository;
+    
+    @Autowired
     private JwtUtil jwtUtil;
 
     @PostMapping("/signup")
@@ -43,10 +49,17 @@ public class AuthController {
         }
 
         user.setPassword(passwordEncoder.encode(user.getPassword()));
-        userRepository.save(user);
 
+        if (user.getRoles() == null || user.getRoles().isEmpty()) {
+            Optional<Role> defaultRole = roleRepository.findByName("USER");
+            if(defaultRole.isPresent()) {
+                user.getRoles().add(defaultRole.get());
+            }
+        }
+        userRepository.save(user);
         return ResponseEntity.ok("User registered successfully");
     }
+
 
     @PostMapping("/login")
     public ResponseEntity<TokenResponse> login(@RequestBody User user) throws Exception {
