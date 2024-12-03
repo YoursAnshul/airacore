@@ -21,7 +21,7 @@ public class CustomUserDetailsService implements UserDetailsService {
 
 	@Override
 	public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-		Optional<com.aircore.entity.User> opt = adminRepository.findByUsername(username);
+		Optional<com.aircore.entity.User> opt = adminRepository.findByEmail(username);
 		System.out.println(username);
 		if (!opt.isPresent()) {
 			com.aircore.entity.User user = opt.get();

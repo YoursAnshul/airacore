@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.aircore.entity.Role;
 import com.aircore.request.RoleRequest;
+import com.aircore.response.AppResponse;
 import com.aircore.service.UserService;
 
 @RestController
@@ -37,28 +38,41 @@ public class UserController {
     }
     
     @PostMapping("/add/role")
-    public ResponseEntity<?> addRole(@RequestBody RoleRequest roleDto) {
+    public ResponseEntity<AppResponse<?>> addRole(@RequestBody RoleRequest roleDto) {
         try {
             Role role = userSerivce.createRole(roleDto);
-            return ResponseEntity.ok("Role created successfully with ID: " + role.getId());
+            return ResponseEntity.ok(
+                new AppResponse<>(true, "Role created successfully", 200, role, null)
+            );
         } catch (IllegalArgumentException e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
+            return ResponseEntity.badRequest().body(
+                new AppResponse<>(false, "Invalid input", 400, null, e.getMessage())
+            );
         } catch (Exception e) {
-            return ResponseEntity.status(500).body("Error: " + e.getMessage());
+            return ResponseEntity.status(500).body(
+                new AppResponse<>(false, "Internal Server Error", 500, null, e.getMessage())
+            );
         }
     }
-    
+
     @PutMapping("/update/role/{id}")
-    public ResponseEntity<?> updateRole(@PathVariable Long id, @RequestBody RoleRequest roleDto) {
+    public ResponseEntity<AppResponse<?>> updateRole(@PathVariable Long id, @RequestBody RoleRequest roleDto) {
         try {
-            Role role = userSerivce.updateRole(id, roleDto);
-            return ResponseEntity.ok("Role updated successfully with ID: " + role.getId());
+            userSerivce.updateRole(id, roleDto);
+            return ResponseEntity.ok(
+                new AppResponse<>(true, "Role updated successfully", 200, null, null)
+            );
         } catch (IllegalArgumentException e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
+            return ResponseEntity.badRequest().body(
+                new AppResponse<>(false, "Invalid input", 400, null, e.getMessage())
+            );
         } catch (Exception e) {
-            return ResponseEntity.status(500).body("Error: " + e.getMessage());
+            return ResponseEntity.status(500).body(
+                new AppResponse<>(false, "Internal Server Error", 500, null, e.getMessage())
+            );
         }
     }
+   
 
 
 }

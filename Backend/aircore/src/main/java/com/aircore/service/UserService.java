@@ -50,12 +50,13 @@ public class UserService {
         String token = authHeader.replace("Bearer ", "");
         String username = jwtUtil.extractUsername(token);
 
-        User user = userRepository.findByUsername(username)
+        User user = userRepository.findByEmail(username)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
         Map<String, Object> response = new HashMap<>();
         response.put("id", user.getId());
-        response.put("username", user.getUsername());
+        response.put("first_name", user.getFirst_name());
+        response.put("last_name", user.getLast_name());
         response.put("email", user.getEmail());
 
         List<Map<String, Object>> rolesWithMenus = user.getRoles().stream().map(role -> {

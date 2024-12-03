@@ -7,6 +7,7 @@ import org.springframework.stereotype.Service;
 import com.aircore.configuration.JwtUtil;
 import com.aircore.entity.Role;
 import com.aircore.entity.User;
+import com.aircore.exception.InvalidCredentialsException;
 import com.aircore.repository.RoleRepository;
 import com.aircore.repository.UserRepository;
 import com.aircore.response.TokenResponse;
@@ -28,10 +29,6 @@ public class AuthService {
     private JwtUtil jwtUtil;
 
     public String registerUser(User user) {
-        if (userRepository.existsByUsername(user.getUsername())) {
-            throw new IllegalArgumentException("Username already exists");
-        }
-
         if (userRepository.existsByEmail(user.getEmail())) {
             throw new IllegalArgumentException("Email already exists");
         }
@@ -48,15 +45,15 @@ public class AuthService {
         return "User registered successfully";
     }
     
-    public TokenResponse authenticateUser(User user) throws Exception {
-        User foundUser = userRepository.findByUsername(user.getUsername())
-                .orElseThrow(() -> new Exception("Username not found"));
+    public TokenResponse authenticateUser(User user) throws InvalidCredentialsException {
+        User foundUser = userRepository.findByEmail(user.getEmail())
+                .orElseThrow(() -> new InvalidCredentialsException("Invalid credentials"));
 
         if (!passwordEncoder.matches(user.getPassword(), foundUser.getPassword())) {
-            throw new Exception("Invalid password");
+            throw new InvalidCredentialsException("Invalid credentials");
         }
 
-        String token = jwtUtil.generateToken(foundUser.getUsername(), "USER");
+        String token = jwtUtil.generateToken(foundUser.getEmail(), "USER");
 
         TokenResponse response = new TokenResponse();
         response.setToken(token);
@@ -64,5 +61,6 @@ public class AuthService {
         response.setRole("USER");
         return response;
     }
+
 	
 }
