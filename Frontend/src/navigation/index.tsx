@@ -31,6 +31,7 @@ const Navigation = () => {
     authenticationPath: "/login",
   };
 
+  console.log("defaultProtectedRouteProps", defaultProtectedRouteProps)
   const Login = React.lazy(() => import("../components/Login/Login"));
   const Users = React.lazy(() => import("../pages/Users/Users"));
   const SignUp = React.lazy(() => import("../components/Sign Up/SignUp"));
@@ -57,23 +58,11 @@ const Navigation = () => {
             path="/signup"
             element={
               <Suspense fallback={<></>}>
-                
                   <SignUp />
-                
               </Suspense>
             }
           />
-          <Route
-            path="/"
-            element={
-              defaultProtectedRouteProps.isAuthenticated ||
-                login.loginSuccess ? (
-                <Navigate replace to="/dashboard" />
-              ) : (
-                <Navigate replace to="/login" />
-              )
-            }
-          />
+         
           <Route
             path="/"
             element={

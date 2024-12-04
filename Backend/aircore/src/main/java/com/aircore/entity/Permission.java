@@ -1,6 +1,8 @@
 package com.aircore.entity;
 
-import com.aircore.utility.Enumeration.PERMISSION_NAME;
+import java.util.Date;
+
+import com.aircore.utility.Enumeration.Status;
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -11,16 +13,25 @@ import jakarta.persistence.Id;
 import lombok.Getter;
 import lombok.Setter;
 
-@Setter
 @Getter
+@Setter
 @Entity
 public class Permission {
 
-	@Id
+    @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-	
-	@Enumerated(EnumType.STRING)
-    private PERMISSION_NAME name;
-	
+
+    private Boolean isCreate;
+    private Boolean isRead;
+    private Boolean isUpdate;
+    private Boolean isDelete;
+    private Boolean isAll;
+
+    @Enumerated(EnumType.STRING)
+    private Status status;
+
+    private Date createdAt;
+    private Date updatedAt;
+    
 }
