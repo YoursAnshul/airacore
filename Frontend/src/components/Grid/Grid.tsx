@@ -4,7 +4,7 @@ import loader from "../../assets/images/loader.gif";
 // import calender from "../assets/images/calender.svg";
 import Row from "react-bootstrap/Row";
 import Col from "react-bootstrap/Col";
-import { Display, X } from "react-bootstrap-icons";
+import { X } from "react-bootstrap-icons";
 import ButtonLight from "react-bootstrap/Button";
 // import iconCalendar from "../assets/images/calander-icon.svg";
 // import iconFilter from "../assets/images/filter-icon.svg";
@@ -21,8 +21,8 @@ import { Label } from "../Common/Label/Label";
 import Paginations from "../pagination/Paginations";
 import { InputGroup } from "react-bootstrap";
 import { IoSearchOutline } from "react-icons/io5";
+import ShancoDatePicker from "../Common/ShancoDatePicker/ShancoDatePicker";
 import HelperService from "../../Services/HelperService";
-import EBDatePicker from "../Common/EBDatePicker/EBDatePicker";
 
 export interface GridColumn {
   value: any;
@@ -32,7 +32,6 @@ export interface GridColumn {
 }
 
 export interface GridData {
-  searchPlaceholder?: string | undefined;
   headers: GridHeader[];
   rows: GridRow[];
   filters?: Filter[];
@@ -55,8 +54,11 @@ export interface GridData {
   unselectRow?: any;
   showDateFilter?: boolean;
   showSearch?: boolean;
-  showDropDown?:boolean;
-  DropDownOptions?:any
+  showDropDown?: boolean;
+  DropDownOptions?: any;
+  manageCurrentPage?: any;
+  onLoadCurrentPage?:any;
+  currentSearchKeyword?:any
 }
 
 export interface Filter {
@@ -126,60 +128,6 @@ const Grid = React.forwardRef((props: GridData, ref) => {
   const [filters, setFilters] = useState(
     props.filters
       ? props.filters.map((option: Filter) => {
-        if (option.isShow === undefined) {
-          option.isShow = false;
-        }
-
-        option.child.map((child: FilterOption) => {
-          if (child.isChecked === undefined) {
-            child.isChecked = false;
-          }
-        });
-
-        return { ...option };
-      })
-      : []
-  );
-  const [dateFilter, setDateFilters] = useState(
-    props.dateFilter
-      ? props.dateFilter.map((child: FilterOption) => {
-        if (child.isChecked === undefined) {
-          child.isChecked = false;
-        }
-        return { ...child };
-      })
-      : []
-  );
-  const [isFilter, setIsFilter] = useState(false);
-  const [isShowColumns, setIsShowColumns] = useState(false);
-  const [isShowDateRange, setIsShowDateRange] = useState(false);
-  const [rows, setRows] = useState([...props.rows]);
-  const [currentPage, setCurrentPage] = useState(1);
-  const [perPageItem, setPerPageItem] = useState(
-    props.perPageItem ? props.perPageItem : 10
-  );
-  const [startDate, setStartDate] = useState<any>();
-  const [endDate, setEndDate] = useState<any>();
-  const [firstDate, setFirstDate] = useState<any>();
-  const [secondDate, setSecondDate] = useState<any>();
-  const [data, setData] = useState<GridRow[]>([]);
-  const [dateFilterBy, setDateFilterBy] = useState("THIS_WEEK");
-  const [isAscending, setIsAscending] = useState(false);
-  const [key, setKey] = useState("");
-  const [searchText, setSearchText] = useState<string>("");
-  const [dropDownSelect, setDropDownSelect] = useState<string>("");
-
-  const [styledRow, setStyledRow] = useState<Number>();
-  let isChildClick = false;
-
-  useEffect(() => {
-    setCheckBoxStauts(props.checkBoxStauts);
-  }, [props.checkBoxStauts]);
-
-  useEffect(() => {
-    setFilters(
-      props.filters
-        ? props.filters.map((option: Filter) => {
           if (option.isShow === undefined) {
             option.isShow = false;
           }
@@ -192,6 +140,81 @@ const Grid = React.forwardRef((props: GridData, ref) => {
 
           return { ...option };
         })
+      : []
+  );
+  const [dateFilter, setDateFilters] = useState(
+    props.dateFilter
+      ? props.dateFilter.map((child: FilterOption) => {
+          if (child.isChecked === undefined) {
+            child.isChecked = false;
+          }
+          return { ...child };
+        })
+      : []
+  );
+  const [isFilter, setIsFilter] = useState(false);
+  const [isShowColumns, setIsShowColumns] = useState(false);
+  const [isShowDateRange, setIsShowDateRange] = useState(false);
+  const [rows, setRows] = useState([...props.rows]);
+  const [currentPage, setCurrentPage] = useState(props.manageCurrentPage ? props.manageCurrentPage: 1);
+  const [perPageItem, setPerPageItem] = useState(
+    props.perPageItem ? props.perPageItem : 10
+  );
+  const [startDate, setStartDate] = useState<any>();
+  const [endDate, setEndDate] = useState<any>();
+  const [firstDate, setFirstDate] = useState<any>();
+  const [secondDate, setSecondDate] = useState<any>();
+  const [data, setData] = useState<GridRow[]>([]);
+  const [dateFilterBy, setDateFilterBy] = useState("THIS_WEEK");
+  const [isAscending, setIsAscending] = useState(false);
+  const [key, setKey] = useState("");
+  const [searchText, setSearchText] = useState<string>(props.currentSearchKeyword?props.currentSearchKeyword:"");
+  const [dropDownSelect, setDropDownSelect] = useState<string>("");
+
+  const [styledRow, setStyledRow] = useState<Number>();
+  let isChildClick = false;
+
+  useEffect(() => {
+    if(props.onLoadCurrentPage == true){
+      if (props.manageCurrentPage) {
+        setCurrentPage(props.manageCurrentPage);
+      }
+    }
+    
+  }, [props.manageCurrentPage]);
+
+
+  useEffect(() => {
+    if(props.onLoadCurrentPage == true){
+      if (props.currentSearchKeyword) {
+        setSearchText(props.currentSearchKeyword);
+      }
+    }
+    
+  }, [props.currentSearchKeyword]);
+
+  
+
+  useEffect(() => {
+    setCheckBoxStauts(props.checkBoxStauts);
+  }, [props.checkBoxStauts]);
+
+  useEffect(() => {
+    setFilters(
+      props.filters
+        ? props.filters.map((option: Filter) => {
+            if (option.isShow === undefined) {
+              option.isShow = false;
+            }
+
+            option.child.map((child: FilterOption) => {
+              if (child.isChecked === undefined) {
+                child.isChecked = false;
+              }
+            });
+
+            return { ...option };
+          })
         : []
     );
   }, [props.filters]);
@@ -225,8 +248,14 @@ const Grid = React.forwardRef((props: GridData, ref) => {
   }, [props.headers]);
 
   useEffect(() => {
-    if (props.onPageChange) {      
-      props.onPageChange(currentPage, searchText, startDate, endDate,dropDownSelect);
+    if (props.onPageChange) {
+      props.onPageChange(
+        currentPage,
+        searchText,
+        startDate,
+        endDate,
+        dropDownSelect
+      );
     }
   }, [currentPage]);
 
@@ -371,13 +400,13 @@ const Grid = React.forwardRef((props: GridData, ref) => {
     let tempFilter = filters.map((option: Filter) => {
       return option.isShow
         ? {
-          ...option,
-          child: option.child.map((child: FilterOption, j: number) => {
-            return j == index
-              ? { ...child, isChecked: !child.isChecked }
-              : child;
-          }),
-        }
+            ...option,
+            child: option.child.map((child: FilterOption, j: number) => {
+              return j == index
+                ? { ...child, isChecked: !child.isChecked }
+                : child;
+            }),
+          }
         : option;
     });
     setFilters(tempFilter);
@@ -403,11 +432,11 @@ const Grid = React.forwardRef((props: GridData, ref) => {
     var tempFilter = filters.map((option: Filter, k: number) => {
       return i == k
         ? {
-          ...option,
-          child: option.child.map((child: FilterOption, l: number) => {
-            return j == l ? { ...child, isChecked: !child.isChecked } : child;
-          }),
-        }
+            ...option,
+            child: option.child.map((child: FilterOption, l: number) => {
+              return j == l ? { ...child, isChecked: !child.isChecked } : child;
+            }),
+          }
         : option;
     });
     setFilters(tempFilter);
@@ -451,15 +480,15 @@ const Grid = React.forwardRef((props: GridData, ref) => {
       headers.map((option: GridHeader, i: number) =>
         i === index
           ? {
-            ...option,
-            isAsc: !option.isAsc,
-            isDesc: option.isAsc,
-          }
+              ...option,
+              isAsc: !option.isAsc,
+              isDesc: option.isAsc,
+            }
           : {
-            ...option,
-            isAsc: false,
-            isDesc: false,
-          }
+              ...option,
+              isAsc: false,
+              isDesc: false,
+            }
       )
     );
     setIsAscending(!asc);
@@ -589,6 +618,18 @@ const Grid = React.forwardRef((props: GridData, ref) => {
 
   const currentDate = new Date(startDate);
 
+  const handleKeyDown = (e: any) => {
+    if (e.key === "Enter" || e.keyCode === 13) {
+      props.onPageChange(
+        currentPage,
+        searchText,
+        startDate,
+        endDate,
+        dropDownSelect
+      );
+    }
+  };
+
   return (
     <div className="grid-div" data-testid="comp-sawin-table">
       <Row className="align-items-top mx-0 grid-filter-options">
@@ -601,25 +642,29 @@ const Grid = React.forwardRef((props: GridData, ref) => {
                     <IoSearchOutline className="icon" />
                   </InputGroup.Text>
                   <Form.Control
-                    placeholder={props.searchPlaceholder}
+                    placeholder="Search"
                     onChange={(e: any) => setSearchText(e.target.value)}
+                    onKeyDown={handleKeyDown}
+
+                   defaultValue={searchText?searchText:""}
                   />
                 </InputGroup>
               )}
               {props.showDropDown && (
-                   <Col lg={4} sm={4} className="">
-                   <select
-                     className="form-select"
-                     onChange={(e: any) => setDropDownSelect(e.target.value)}
-                   >
-                     <option value="" >
-                      {"Select"}
-                     </option>
-                     <option value="LOGIN">Login</option>
-                        <option value="LOGOUT">Logout</option>
-                        <option value="DOWNLOAD">Download</option>
-                        <option value="VIEW">View</option>
-                     {/* {props.DropDownOptions &&
+                <Col lg={4} sm={4} className="">
+                  <select
+                    className="form-select"
+                    onChange={(e: any) => setDropDownSelect(e.target.value)}
+                  >
+                    <option value="">{"Select"}</option>
+                    <option value="LOGIN">Login</option>
+                    <option value="LOGOUT">Logout</option>
+                    <option value="DOWNLOAD">Download</option>
+                    <option value="VIEW">View</option>
+                    <option value="UPDATED_PRODUCT">Updated Product</option>
+                    <option value="ADDED_PRODUCT">Added Product</option>
+                    <option value="DELETED_PRODUCT">Deleted Product</option>
+                    {/* {props.DropDownOptions &&
                       props .DropDownOptions.length > 0 &&
                       props. DropDownOptions.map((item: any, index: number) => {
                          return (
@@ -628,15 +673,14 @@ const Grid = React.forwardRef((props: GridData, ref) => {
                            </option>
                          );
                        })} */}
-                   </select>
-              
-                 </Col>
+                  </select>
+                </Col>
               )}
-              
+
               {props.showDateFilter && (
                 <>
                   <div className="w-100">
-                    <EBDatePicker
+                    <ShancoDatePicker
                       selected={startDate}
                       // maxData={new Date(endDate)}
                       maxData={endDate ? new Date(endDate) : null}
@@ -645,19 +689,19 @@ const Grid = React.forwardRef((props: GridData, ref) => {
                   </div>
                   <span>To</span>
                   <div className="w-100">
-                    <EBDatePicker
+                    <ShancoDatePicker
                       selected={endDate}
                       onChange={(date: any) => setEndDate(date)}
                       // minData={new Date(startDate)}
-                      minData={startDate ? new Date(startDate) : null} 
-
+                      minData={startDate ? new Date(startDate) : null}
                     />
                   </div>
                 </>
               )}
-              
 
-              {(props.showDateFilter || props.showSearch|| props.showDropDown) && (
+              {(props.showDateFilter ||
+                props.showSearch ||
+                props.showDropDown) && (
                 <Button
                   className="btn-brand-1"
                   onClick={() => {
@@ -676,21 +720,19 @@ const Grid = React.forwardRef((props: GridData, ref) => {
               )}
             </div>
           </div>
-
-          
           {props.filters && props.filters.length > 0 ? (
             <>
               {filters.length > 0
                 ? filters.map((option: Filter, i: number) => {
-                  return option.child.map(
-                    (child: FilterOption, j: number) => {
-                      if (child.isChecked) {
-                        count++;
+                    return option.child.map(
+                      (child: FilterOption, j: number) => {
+                        if (child.isChecked) {
+                          count++;
+                        }
+                        return "";
                       }
-                      return "";
-                    }
-                  );
-                })
+                    );
+                  })
                 : ""}
               {count > 0 || (startDate && endDate) ? (
                 <label className="font-medium font-14 font-w-medium d-inline me-3 text-dark">
@@ -703,26 +745,26 @@ const Grid = React.forwardRef((props: GridData, ref) => {
               <div className="applied-filter">
                 {filters.length > 0
                   ? filters.map((option: Filter, i: number) => {
-                    return option.child.map(
-                      (child: FilterOption, j: number) => {
-                        return (
-                          <span key={"filter_" + i + "_" + j}>
-                            {child.isChecked ? (
-                              <span className="filter-name">
-                                {child.title}{" "}
-                                <X
-                                  size={20}
-                                  onClick={() => removeFilter(i, j)}
-                                />{" "}
-                              </span>
-                            ) : (
-                              ""
-                            )}
-                          </span>
-                        );
-                      }
-                    );
-                  })
+                      return option.child.map(
+                        (child: FilterOption, j: number) => {
+                          return (
+                            <span key={"filter_" + i + "_" + j}>
+                              {child.isChecked ? (
+                                <span className="filter-name">
+                                  {child.title}{" "}
+                                  <X
+                                    size={20}
+                                    onClick={() => removeFilter(i, j)}
+                                  />{" "}
+                                </span>
+                              ) : (
+                                ""
+                              )}
+                            </span>
+                          );
+                        }
+                      );
+                    })
                   : ""}
                 {firstDate && secondDate && (
                   <span>
@@ -950,23 +992,23 @@ const Grid = React.forwardRef((props: GridData, ref) => {
                     <div className="row ">
                       {dateFilter
                         ? dateFilter.map(
-                          (filter: FilterOption, index: number) => (
-                            <div key={index} className="col-4 mt-2">
-                              <input
-                                type="checkbox"
-                                checked={filter.isChecked}
-                                onClick={() =>
-                                  updatecheckValueDateFilter(Number(index))
-                                }
-                                className="sawin-checkbox new-check"
-                              />
-                              <Label
-                                title={filter.title}
-                                classNames="mb-3 selection-option"
-                              />
-                            </div>
+                            (filter: FilterOption, index: number) => (
+                              <div key={index} className="col-4 mt-2">
+                                <input
+                                  type="checkbox"
+                                  checked={filter.isChecked}
+                                  onClick={() =>
+                                    updatecheckValueDateFilter(Number(index))
+                                  }
+                                  className="sawin-checkbox new-check"
+                                />
+                                <Label
+                                  title={filter.title}
+                                  classNames="mb-3 selection-option"
+                                />
+                              </div>
+                            )
                           )
-                        )
                         : ""}
                     </div>
                     <div className="row mb-3">
@@ -1106,7 +1148,10 @@ const Grid = React.forwardRef((props: GridData, ref) => {
                       "cursor-pointer text-center " +
                       (header.isFreeze == true ? "freeze-column" : "")
                     }
-                    style={{ width: header.width ? header.width : "",minWidth:"100px" }}
+                    style={{
+                      width: header.width ? header.width : "",
+                      minWidth: "100px",
+                    }}
                     key={i.toString()}
                   >
                     {!header.isShowCheckBox && header.title}
@@ -1158,11 +1203,11 @@ const Grid = React.forwardRef((props: GridData, ref) => {
                   }
                   key={"body_data_" + i.toString()}
                   style={{ backgroundColor: row.backgroundColor }}
-                // className={
-                //   (styledRow == i ? "selected-row" : "") ||
-                //   (row.isRed ? "red-styled-row" : "") ||
-                //   (props.hoverRow ? "hover-styled-row" : "")
-                // }
+                  // className={
+                  //   (styledRow == i ? "selected-row" : "") ||
+                  //   (row.isRed ? "red-styled-row" : "") ||
+                  //   (props.hoverRow ? "hover-styled-row" : "")
+                  // }
                 >
                   {headers.map((header: GridHeader, j) =>
                     header.isShow === false || (row.type == "B" && j != 0) ? (
@@ -1235,7 +1280,7 @@ const Grid = React.forwardRef((props: GridData, ref) => {
               : (currentPage - 1) * perPageItem + perPageItem}{" "}
             of {props.count}
           </div>
-          <div className="col-6 text-end ms-auto" style={{display: "flex", justifyContent: "end"}}>
+          <div className="col-6 align-items-center">
             <Paginations
               className=""
               changePage={(page: number) => {

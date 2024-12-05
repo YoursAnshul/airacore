@@ -1,5 +1,5 @@
 import axios from "axios";
-import { toast } from 'react-toastify';
+import { toast } from "react-toastify";
 
 interface PropData {
   action: string;
@@ -15,7 +15,7 @@ interface PropData {
 const WebService = {
   getAccesstoken: function (props: PropData) {
     this.addLoader(props?.id);
-    let url = this.getBaseUrl(props.type)
+    let url = this.getBaseUrl(props.type);
     return new Promise((resolve, reject) => {
       var bodyFormData = new URLSearchParams();
       for (let key in props.body) {
@@ -29,7 +29,7 @@ const WebService = {
           headers: headers,
         })
         .then((response) => {
-          if (typeof window !== 'undefined') {
+          if (typeof window !== "undefined") {
             localStorage.setItem("token", response.data.token);
           }
           resolve(response.data);
@@ -44,7 +44,7 @@ const WebService = {
 
   postAPI: function <T>(props: PropData) {
     this.addLoader(props?.id);
-    let url = this.getBaseUrl(props.type)
+    let url = this.getBaseUrl(props.type);
     return new Promise<T>((resolve, reject) => {
       var bodyFormData = new URLSearchParams();
       for (let key in props.body) {
@@ -64,7 +64,7 @@ const WebService = {
         })
         .catch((error) => {
           if (error && error.response && error.response.status == 401) {
-            this.clearLocalStorage()
+            this.clearLocalStorage();
             window.location.href = "/";
           }
           this.removeLoader(props?.id);
@@ -75,7 +75,7 @@ const WebService = {
 
   putAPI: function (props: PropData) {
     this.addLoader(props?.id);
-    let url = this.getBaseUrl(props.type)
+    let url = this.getBaseUrl(props.type);
     return new Promise((resolve, reject) => {
       var bodyFormData = new URLSearchParams();
       for (let key in props.body) {
@@ -91,7 +91,7 @@ const WebService = {
         })
         .catch((error) => {
           if (error && error.response && error.response.status == 401) {
-            this.clearLocalStorage()
+            this.clearLocalStorage();
             window.location.href = "/";
           }
           this.removeLoader(props?.id);
@@ -129,8 +129,8 @@ const WebService = {
   },
 
   deleteAPI: function (props: PropData) {
-    this.addLoader(props?.id)
-    let url = this.getBaseUrl(props.type)
+    this.addLoader(props?.id);
+    let url = this.getBaseUrl(props.type);
     return new Promise((resolve, reject) => {
       axios
         .delete(`${url}${props.action}`, {
@@ -138,14 +138,14 @@ const WebService = {
         })
         .then((response) => {
           resolve(response.data);
-          this.removeLoader(props?.id)
+          this.removeLoader(props?.id);
         })
         .catch((error) => {
           if (error && error.response && error.response.status == 401) {
-            this.clearLocalStorage()
+            this.clearLocalStorage();
             window.location.href = "/";
           }
-          this.removeLoader(props?.id)
+          this.removeLoader(props?.id);
           reject(this.errorHandler(error));
         });
     });
@@ -180,24 +180,24 @@ const WebService = {
   },
 
   getHeaders: function () {
-    if (typeof window !== 'undefined') {
+    if (typeof window !== "undefined") {
       if (localStorage.getItem("token") == null) {
         return {
-          "Content-Type": "application/json"
+          "Content-Type": "application/json",
         };
       }
 
       return {
         "Content-Type": "application/json",
-        "Authorization": "Bearer " + localStorage.getItem("token")
-      }
+        Authorization: "Bearer " + localStorage.getItem("token"),
+      };
     }
   },
 
   getMultipartHeaders: function () {
-    if (typeof window !== 'undefined') {
+    if (typeof window !== "undefined") {
       return {
-        "Authorization": "Bearer " + localStorage.getItem("token")
+        Authorization: "Bearer " + localStorage.getItem("token"),
       };
     }
   },
@@ -210,7 +210,7 @@ const WebService = {
     if (!error || !error.status) {
       errorMessage = "Server Not Responding";
     } else if (error.status === 401) {
-      this.clearLocalStorage()
+      this.clearLocalStorage();
       window.location.href = "/";
     } else if (error.status === 500) {
       errorMessage =
@@ -221,7 +221,6 @@ const WebService = {
         "An unkown exception has occured. Please contact to administrator";
     } else {
       errorMessage = error.data.message;
-
     }
     if (!showErrorOnPopup) {
       toast.error(errorMessage, { theme: "colored" });
@@ -235,7 +234,7 @@ const WebService = {
       if (button != null) {
         button.disabled = true;
         var loader = document.createElement("img");
-        loader.src = "../images/loading.gif";
+        loader.src = "/images/loading.gif";
         loader.className = "button-loader";
         button.prepend(loader);
       }
@@ -253,25 +252,30 @@ const WebService = {
   },
 
   clearLocalStorage() {
-    if (typeof window !== 'undefined') {
-      localStorage.removeItem("token")
-      localStorage.removeItem('loginUserImage')
-      localStorage.removeItem('uuid')
-      localStorage.removeItem('type')
+    if (typeof window !== "undefined") {
+      localStorage.removeItem("token");
+      localStorage.removeItem("loginUserImage");
+      localStorage.removeItem("uuid");
+      localStorage.removeItem("type");
     }
   },
 
   getBaseUrl(type?: string) {
-    if (type == "home") {
-      return "http://localhost:8080/";
-    } else {
-      return "http://localhost:8080/";
-    }
+    return "http://localhost:8080/";
+    // if (window.location.hostname == "admin.shan-co.net" ) {
+    //   if (type == "home") {
+    //     return "https://admin.shan-co.net/";
+    //   } else {
+    //     return "https://api.shan-co.net/";
+    //   }
+    // } else {
+    //   if (type == "home") {
+    //     return "https://uatshancoadmin.winayak.com/";
+    //   } else {
+    //     return "https://uatshancoapi.winayak.com/";
+    //   }
+    // }
   },
-
-  
-  
 };
-
 
 export default WebService;

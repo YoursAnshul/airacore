@@ -38,7 +38,7 @@ const DeleteModal = (props: PropData) => {
                 <div className="d-flex justify-content-center mt-4 mb-4">
                   <Button className="btn-brand-1" onClick={() => props.onDelete()} id="popup-confirm-button">Yes</Button>
                   <span className="px-2"></span>
-                  <Button className="btn-brand-1" onClick={() => onCancel()} id="popup-cancel-button">No</Button>
+                  <Button className="btn btn-dark" onClick={() => onCancel()} id="popup-cancel-button">No</Button>
                 </div>
               </div>
             </form>

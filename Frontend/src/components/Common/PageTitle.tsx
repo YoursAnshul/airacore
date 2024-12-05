@@ -3,7 +3,6 @@ import { MdOutlineKeyboardBackspace } from 'react-icons/md'
 
 interface PropData {
     title: string,
-    name?: any,
     backArrow?: boolean
 }
 
@@ -27,7 +26,7 @@ const PageTitle = (props: PropData) => {
                             null
                     }
                     <div className="page-title">
-                        {props.title} { props?.name ? props?.name : '' }
+                        {props.title}
                     </div>
                 </div>
             </div>
