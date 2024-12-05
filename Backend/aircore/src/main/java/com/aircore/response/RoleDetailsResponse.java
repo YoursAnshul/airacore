@@ -27,7 +27,6 @@ public class RoleDetailsResponse {
         private Boolean isRead;
         private Boolean isUpdate;
         private Boolean isDelete;
-        private Boolean isAll;
         private String status;
         private Date createdAt;
         private Date updatedAt;

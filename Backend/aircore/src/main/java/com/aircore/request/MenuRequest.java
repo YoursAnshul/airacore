@@ -7,8 +7,8 @@ import lombok.Setter;
 @Setter
 public class MenuRequest {
 	private String name;
-	private boolean isCreate;
-	private boolean isRead;
-	private boolean isUpdate;
-	private boolean isDelete;
+	private Boolean isCreate;
+	private Boolean isRead;
+	private Boolean isUpdate;
+	private Boolean isDelete;
 }

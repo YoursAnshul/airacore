@@ -1,11 +1,16 @@
 package com.aircore.entity;
 
+import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
+
+import com.aircore.utility.Enumeration.Status;
 
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -25,23 +30,29 @@ public class User {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false, unique = false)
-    private String first_name;
+	@Column(name = "first_name", nullable = false, unique = false)
+	private String firstName;
 
-    @Column(nullable = false, unique = false)
-    private String last_name;
+	@Column(name = "last_name", nullable = false, unique = false)
+	private String lastName;
+
+	@Column(name = "mobile_number", nullable = false, unique = true)
+	private String mobileNumber;
     
     @Column(nullable = false, unique = true)
     private String email;
     
-    @Column(nullable = false, unique = true)
-    private String mobile_number;
 
     @Column(nullable = false)
     private String password;
 
     @Column(nullable = false)
     private String role = "USER";
+    
+    @Enumerated(EnumType.STRING)
+    private Status status;
+    
+    private Date createdDate;
     
     @ManyToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
     @JoinTable(

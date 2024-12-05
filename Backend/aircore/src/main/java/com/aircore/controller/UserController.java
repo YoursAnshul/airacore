@@ -22,6 +22,7 @@ import com.aircore.response.AppResponse;
 import com.aircore.response.PageableResponse;
 import com.aircore.response.RoleDetailsResponse;
 import com.aircore.response.RoleResponse;
+import com.aircore.response.UserResponse;
 import com.aircore.service.UserService;
 import com.aircore.utility.Constant;
 
@@ -91,16 +92,29 @@ public class UserController {
 	}
 
 	@PostMapping("/role/add")
-	public ResponseEntity<AppResponse<Role>> addNewRole(@RequestBody RoleRequest roleRequest) {
+	public ResponseEntity<AppResponse<?>> addNewRole(@RequestBody RoleRequest roleRequest) {
 		try {
 			Role savedRole = userSerivce.addRole(roleRequest);
-			AppResponse<Role> appResponse = new AppResponse<>(true, "Role added successfully", 201, savedRole, null);
+			AppResponse<?> appResponse = new AppResponse<>(true, "Role added successfully", 201, savedRole.getId(), null);
 			return new ResponseEntity<>(appResponse, HttpStatus.CREATED);
-
 		} catch (Exception e) {
-			AppResponse<Role> appResponse = new AppResponse<>(false, "Failed to add role", 500, null, e.getMessage());
+			AppResponse<?> appResponse = new AppResponse<>(false, "Failed to add role", 500, null, e.getMessage());
 			return new ResponseEntity<>(appResponse, HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 	}
+	
+	@GetMapping("/users/{page}")
+    public ResponseEntity<PageableResponse<UserResponse>> getActiveUsers(@PathVariable int page) {
+        if (page > 0) {
+            page = page - 1;
+        }
+        Page<UserResponse> userPage = userSerivce.getActiveUsers(PageRequest.of(page, Constant.LIMIT_10));
+        PageableResponse<UserResponse> response = new PageableResponse<>(
+                (int) userPage.getTotalElements(),
+                userPage.getContent()
+        );
+
+        return ResponseEntity.ok(response);
+    }
 
 }

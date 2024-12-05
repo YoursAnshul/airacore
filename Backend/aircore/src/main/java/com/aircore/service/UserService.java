@@ -5,7 +5,6 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,10 +24,10 @@ import com.aircore.repository.RoleMenuPermissionRepository;
 import com.aircore.repository.RoleRepository;
 import com.aircore.repository.UserRepository;
 import com.aircore.request.MenuRequest;
-import com.aircore.request.RoleMenuPermissionRequest;
 import com.aircore.request.RoleRequest;
 import com.aircore.response.RoleDetailsResponse;
 import com.aircore.response.RoleResponse;
+import com.aircore.response.UserResponse;
 import com.aircore.utility.Enumeration.Status;
 
 import jakarta.transaction.Transactional;
@@ -63,8 +62,8 @@ public class UserService {
 
         Map<String, Object> response = new HashMap<>();
         response.put("id", user.getId());
-        response.put("first_name", user.getFirst_name());
-        response.put("last_name", user.getLast_name());
+        response.put("first_name", user.getFirstName());
+        response.put("last_name", user.getLastName());
         response.put("email", user.getEmail());
 
         List<Map<String, Object>> rolesWithMenus = user.getRoles().stream().map(role -> {
@@ -149,6 +148,10 @@ public class UserService {
         return roleRepository.findByStatus(Status.ACTIVE, pageable);
     }
 	
+    public Page<UserResponse> getActiveUsers(Pageable pageable) {
+        return userRepository.findByStatus(pageable);
+    }
+    
     public RoleDetailsResponse getRoleDetails(Long roleId) {
         Role role = roleRepository.findByIdWithMenus(roleId);
 
@@ -161,18 +164,16 @@ public class UserService {
         response.setName(role.getName());
         response.setStatus(role.getStatus().name());
         response.setCreatedAt(role.getCreatedDate());
-        response.setUpdatedAt(role.getCreatedDate()); // Assuming no separate updated field in Role
+        response.setUpdatedAt(role.getCreatedDate());
 
         List<RoleDetailsResponse.MenuDetails> menuDetails = role.getRoleMenuPermissions().stream().map(rmp -> {
-            RoleDetailsResponse.MenuDetails menu = response.new MenuDetails(); // Instantiate non-static inner class
+            RoleDetailsResponse.MenuDetails menu = response.new MenuDetails();
             menu.setId(rmp.getMenu().getId());
             menu.setName(rmp.getMenu().getName());
             menu.setIsCreate(rmp.getPermission().getIsCreate());
             menu.setIsRead(rmp.getPermission().getIsRead());
             menu.setIsUpdate(rmp.getPermission().getIsUpdate());
             menu.setIsDelete(rmp.getPermission().getIsDelete());
-            menu.setIsAll(rmp.getPermission().getIsCreate() && rmp.getPermission().getIsRead() &&
-                          rmp.getPermission().getIsUpdate() && rmp.getPermission().getIsDelete());
             menu.setStatus(rmp.getMenu().getStatus().name());
             menu.setCreatedAt(rmp.getMenu().getCreatedAt());
             menu.setUpdatedAt(rmp.getMenu().getUpdatedAt());
@@ -185,56 +186,47 @@ public class UserService {
     }
 
 
+    @Transactional
     public Role addRole(RoleRequest roleRequest) {
-        // Step 1: Create and save the role
         Role role = new Role();
         role.setName(roleRequest.getName());
-        role.setStatus(Status.ACTIVE); // Example status, adjust as needed
+        role.setStatus(Status.ACTIVE);
         role.setCreatedDate(new Date());
+
+        if (roleRepository.existsByName(roleRequest.getName())) {
+            throw new RuntimeException("Role name '" + roleRequest.getName() + "' already exists");
+        }
+        
         Role savedRole = roleRepository.save(role);
 
-        // Step 2: Process the menus and permissions
-        Set<Menu> savedMenus = new HashSet<>();
-        Set<RoleMenuPermission> roleMenuPermissions = new HashSet<>();
-        
+        HashSet<Menu> menus = new HashSet<>();
         for (MenuRequest menuRequest : roleRequest.getMenus()) {
-            // Step 2a: Save the menu entity
-            Menu menu = new Menu();
-            menu.setName(menuRequest.getName());
-            menu.setCreatedAt(new Date());
-            menu.setUpdatedAt(new Date());
-            menu.setStatus(Status.ACTIVE);  // Example status, adjust as needed
-            Menu savedMenu = menuRepository.save(menu);
+            Menu menu = menuRepository.findByName(menuRequest.getName())
+                    .orElseThrow(() -> new RuntimeException("Menu not found: " + menuRequest.getName()));
 
-            // Step 2b: Save the permission entity
+            menus.add(menu);
             Permission permission = new Permission();
-            permission.setIsCreate(menuRequest.isCreate());
-            permission.setIsRead(menuRequest.isRead());
-            permission.setIsUpdate(menuRequest.isUpdate());
-            permission.setIsDelete(menuRequest.isDelete());
+            permission.setIsCreate(menuRequest.getIsCreate());
+            permission.setIsRead(menuRequest.getIsRead());
+            permission.setIsUpdate(menuRequest.getIsUpdate());
+            permission.setIsDelete(menuRequest.getIsDelete());
             permission.setStatus(Status.ACTIVE);
             permission.setCreatedAt(new Date());
             permission.setUpdatedAt(new Date());
             Permission savedPermission = permissionRepository.save(permission);
 
-            // Step 2c: Create RoleMenuPermission
             RoleMenuPermission roleMenuPermission = new RoleMenuPermission();
             roleMenuPermission.setRole(savedRole);
-            roleMenuPermission.setMenu(savedMenu);
+            roleMenuPermission.setMenu(menu);
             roleMenuPermission.setPermission(savedPermission);
-            roleMenuPermissionRepository.save(roleMenuPermission);
 
-            // Step 2d: Add to the collections
-            savedMenus.add(savedMenu);
-            roleMenuPermissions.add(roleMenuPermission);
+            roleMenuPermissionRepository.save(roleMenuPermission);
         }
 
-        // Step 3: Set menus and permissions to the saved role
-        savedRole.setMenus(savedMenus);
-        savedRole.setRoleMenuPermissions(roleMenuPermissions);
-
-        // Step 4: Save the role with the associated entities
-        return roleRepository.save(savedRole); // Save the role again to persist the relationships
+        savedRole.setMenus(menus);
+        roleRepository.save(savedRole);
+        return savedRole;
     }
+
     
 }

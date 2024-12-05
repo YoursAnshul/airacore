@@ -26,7 +26,6 @@ public class Permission {
     private Boolean isRead;
     private Boolean isUpdate;
     private Boolean isDelete;
-    private Boolean isAll;
 
     @Enumerated(EnumType.STRING)
     private Status status;

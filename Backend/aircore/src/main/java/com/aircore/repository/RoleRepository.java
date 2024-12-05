@@ -23,4 +23,6 @@ public interface RoleRepository extends JpaRepository<Role, Long> {
     @Query("SELECT r FROM Role r JOIN FETCH r.menus m WHERE r.id = :roleId")
     Role findByIdWithMenus(@Param("roleId") Long roleId);
     
+    boolean existsByName(String name);
+    
 }
