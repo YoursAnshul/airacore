@@ -1,5 +1,6 @@
 package com.aircore.repository;
 
+import java.util.List;
 import java.util.Optional;
 
 import org.springframework.data.domain.Page;
@@ -18,11 +19,15 @@ public interface RoleRepository extends JpaRepository<Role, Long> {
 
 	Optional<Role> findByName(String name);
 
-    Page<RoleResponse> findByStatus(Status status, Pageable pageable);
+	@Query("SELECT r FROM Role r WHERE r.status = :status AND (:keyword IS NULL OR LOWER(r.name) LIKE LOWER(:keyword))")
+	Page<RoleResponse> findByStatusAndNameLike(@Param("status") Status status, @Param("keyword") String keyword, Pageable pageable);
 
     @Query("SELECT r FROM Role r JOIN FETCH r.menus m WHERE r.id = :roleId")
     Role findByIdWithMenus(@Param("roleId") Long roleId);
     
     boolean existsByName(String name);
+    
+    List<Role> findByStatus(Status status);
+
     
 }

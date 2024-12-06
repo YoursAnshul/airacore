@@ -1,5 +1,7 @@
 package com.aircore.service;
 
+import java.util.Date;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -11,6 +13,7 @@ import com.aircore.exception.InvalidCredentialsException;
 import com.aircore.repository.RoleRepository;
 import com.aircore.repository.UserRepository;
 import com.aircore.response.TokenResponse;
+import com.aircore.utility.Enumeration.Status;
 
 @Service
 public class AuthService {
@@ -33,8 +36,12 @@ public class AuthService {
             throw new IllegalArgumentException("Email already exists");
         }
 
+        if (userRepository.existsByMobileNumber(user.getMobileNumber())) {
+            throw new IllegalArgumentException("Mobile Number already exists");
+        }
+        user.setStatus(Status.ACTIVE);
+        user.setCreatedDate(new Date());
         user.setPassword(passwordEncoder.encode(user.getPassword()));
-
         if (user.getRoles() == null || user.getRoles().isEmpty()) {
             Role defaultRole = roleRepository.findByName("USER")
                     .orElseThrow(() -> new RuntimeException("Default role 'USER' not found"));
