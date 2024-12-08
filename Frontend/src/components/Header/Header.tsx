@@ -19,9 +19,7 @@ const Header = () => {
     const commonData: any = useSelector<RootState, reduxState>((state: any) => state.commonData);
     const [showDeleteModal, setDeleteModal] = useState<boolean>(false);
     const userInfoData: any = useSelector<RootState, any>((state: any) => state.userInfoData);
-
     const url = WebService.getBaseUrl("home")
-
 
     useEffect(() => {
         userMeCall();
@@ -80,9 +78,10 @@ const Header = () => {
               <DeleteModal isShow={showDeleteModal} message={"Are You sure you want to logout.?"} close={() => { setDeleteModal(false); }} onDelete={() => { onLogoutredirect() }} />
                 <Container fluid className='header-nav'>
                     <Navbar expand="lg">
-                        {/* <Navbar.Brand className="me-5">
-                            <img src={Logo} width={186} height={30} alt='' />
-                        </Navbar.Brand> */}
+                        <Navbar.Brand className="me-5">
+                            {/* <img src={Logo} width={186} height={30} alt='' /> */}
+                            <h2 className="text-white">AirCore</h2>
+                        </Navbar.Brand>
                         <Navbar.Toggle aria-controls="basic-navbar-nav" />
                         <div className="d-flex align-items-center ms-auto gap-3" >
                             <Dropdown className="profile2-dd">

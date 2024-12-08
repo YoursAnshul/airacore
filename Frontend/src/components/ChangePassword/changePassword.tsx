@@ -44,7 +44,7 @@ const SetPassword = (props: PropData) => {
     useState<boolean>(false);
   const [userID, setUserID] = useState<any>();
   const commonData: any = useSelector<RootState, reduxState>(
-    (state: any) => state.commonData
+    (state: any) => state.userInfoData
   );
 
   useEffect(() => {
@@ -62,6 +62,7 @@ const SetPassword = (props: PropData) => {
     if (props.adminID) {
       var id = props.adminID;
     } else {
+      console.log("commonData------->", commonData);
       var id = commonData?.user_info?.id;
     }
     
@@ -71,7 +72,7 @@ const SetPassword = (props: PropData) => {
       password: data.comfirm_password,
     };
     WebService.postAPI({
-      action: `admins/change-password`,
+      action: `api/user/update/password`,
       body: obj,
       id: "changePassword-btn",
     })

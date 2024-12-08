@@ -46,12 +46,10 @@ const Login = () => {
                 toast.success("Login successfully");
                 dispatch({ type: USER_LOGIN_SUCCESS, payload: { access_token: token }, });
                 dispatch(setDataInRedux({ type: USER_INFO, value: res }));
-                alert(token);
                 localStorage.setItem("token", token);
                 navigate("/dashboard")
             })
             .catch(() => {
-                alert("clearrrrr........")
                 typeof window !== "undefined" && localStorage.clear();
             });
     };
@@ -63,12 +61,10 @@ const Login = () => {
                     <div className="col-lg-5 d-flex align-items-center justify-content-center">
                         <div className="w-100 login-card rounded-4">
                             <div className="px-lg-5 px-3 py-5 ">
-                                <div className="mb-5 text-center">
-                                    <img src={Logo} width="186" height={30} alt="Logo" />
-                                </div>
+                               
                                 <form onSubmit={handleSubmit(handleLogin)}>
                                     <div className=" ">
-                                        <h1 className="text-light mb-4 font-bold text-center h2">Welcome to Shan & Co Admin</h1>
+                                        <h1 className="text-light mb-4 font-bold text-center h2">Welcome to AirCore</h1>
 
                                         <Controller
                                             control={control}
@@ -154,7 +150,7 @@ const Login = () => {
 
                                         <Button type='submit' id='login_btn' disabled={!isValid} className="btn btn-brand-1 w-100">Login</Button>
                                         <div className="text-center my-3">
-                                            <Link to="/forgot-password" className="text-brand font-14">Forgot Password?</Link> </div>
+                                            <Link to="/sign-up" className="text-brand font-14">Sign Up</Link> </div>
                                     </div>
                                 </form>
                             </div>

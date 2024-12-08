@@ -42,7 +42,7 @@ const Navigation = () => {
           <Route path="/" element={<Login />} />
           <Route path="/login" element={defaultProtectedRouteProps.isAuthenticated || login.loginSuccess ? (
             <Navigate replace to="/dashboard" />) : (<Login />)} />
-          <Route path="/forgot-password" element={defaultProtectedRouteProps.isAuthenticated || login.loginSuccess ? (
+          <Route path="/sign-up" element={defaultProtectedRouteProps.isAuthenticated || login.loginSuccess ? (
             <Navigate replace to="/dashboard" />) : (<ForgotPassword />)} />
           <Route path="/otp" element={defaultProtectedRouteProps.isAuthenticated || login.loginSuccess ? (
             <Navigate replace to="/dashboard" />) : (<Otp />)} />

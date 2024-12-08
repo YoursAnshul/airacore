@@ -61,10 +61,9 @@ const Profile = () => {
       !HelperService.isEmptyObject(userInfoData?.user_info)
     ) {
       setValue("first_name", userInfoData?.user_info?.first_name);
-      setValue("middle_name", userInfoData?.user_info?.middle_name);
       setValue("last_name", userInfoData?.user_info?.last_name);
-      setValue("company_name", userInfoData?.user_info?.company_name);
       setValue("email", userInfoData?.user_info?.email);
+      setValue("id", userInfoData?.user_info?.id);
 
       setImageLocalUrl(userInfoData?.user_info?.avtar);
     }
@@ -108,7 +107,7 @@ const Profile = () => {
 
   const onSave = (data: any) => {
     WebService.putAPI({
-      action: `/update-profile`,
+      action: `api/user/update-profile/${data.id}`,
       body: data,
       id: "update-btn",
     })

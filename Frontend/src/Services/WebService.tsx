@@ -261,7 +261,11 @@ const WebService = {
   },
 
   getBaseUrl(type?: string) {
-    return "http://localhost:8080/";
+    if(type == "home"){
+       return "http://localhost:4201/login";
+    } else {
+      return "http://localhost:8080/";
+    }
     // if (window.location.hostname == "admin.shan-co.net" ) {
     //   if (type == "home") {
     //     return "https://admin.shan-co.net/";

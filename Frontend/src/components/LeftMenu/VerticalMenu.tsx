@@ -11,36 +11,56 @@ import { useSelector } from 'react-redux';
 import HelperService from '../../Services/HelperService';
 import { RootState } from '../../config/Store';
 import { reduxState } from '../../reducer/CommonReducer';
+import WebService from '../../Services/WebService';
 
 const VerticalMenu = () => {
-    const commonData: any = useSelector<RootState, reduxState>(
-        (state: any) => state.commonData
-    );
-    const [permission, setPermission] = useState<any>()
+    const [menuAccess, setMenuAccess] = useState<any[]>([]);
+    const userMeCall = async () => {
+        WebService.getAPI({ action: "api/user/me", id: "login_btn" })
+            .then((res: any) => {
+                setMenuAccess(res.roles[0].menus || []);
+            })
+            .catch(() => {
+                setMenuAccess([]);
+            });
+    };
 
     useEffect(() => {
-        if (
-            commonData &&
-            commonData?.rolePermission &&
-            !HelperService.isEmptyObject(commonData?.rolePermission)
-        ) {
-            if (commonData?.rolePermission?.menus && commonData?.rolePermission?.menus.length > 0) {
-                const data = commonData?.rolePermission.menus
-                // .find((item:any) => item.name === 'Manage product category' );
-                setPermission(data);
-            }
-        } else {
+        userMeCall();
+    }, []);
 
-        }
-    }, [commonData]);
+    const menuConfig = [
+        {
+            id: 1,
+            path: "/dashboard",
+            label: "Dashboard",
+            icon: <MdSpaceDashboard className="menu-icon" />,
+        },
+        {
+            id: 2,
+            path: "/user-management",
+            label: "Admin User Management",
+            icon: <MdCoPresent className="menu-icon" />,
+        },
+        {
+            id: 3,
+            path: "/role-management",
+            label: "Admin Role Management",
+            icon: <MdManageAccounts className="menu-icon" />,
+        },
+    ];
 
     return (
         <>
             <div id="vertical_menu" className="verticle-menu">
                 <div className="menu-list">
-                    <Link id="t-1" to={'/dashboard'} className="menu-item"> <MdSpaceDashboard className="menu-icon" /> <span className='nav-text'>Dashbaord</span></Link>
-                    <Link id="t-1" to={'/user-management'} className="menu-item"> <MdCoPresent className="menu-icon" /> <span className='nav-text'>Admin User Management</span></Link>
-                    <Link id="t-1" to={'/role-management'} className="menu-item"> <MdManageAccounts className="menu-icon" /> <span className='nav-text'>Admin Role Management</span></Link>
+                    {menuConfig
+                        .filter((menu) => menuAccess.some((access) => access.menuId === menu.id)) // Filter based on access
+                        .map((menu) => (
+                            <Link key={menu.id} to={menu.path} className="menu-item">
+                                {menu.icon} <span className="nav-text">{menu.label}</span>
+                            </Link>
+                        ))}
                 </div>
             </div>
             {/* 

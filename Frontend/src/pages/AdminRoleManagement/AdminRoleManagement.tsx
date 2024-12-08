@@ -161,7 +161,7 @@ const AdminRoleManagement = () => {
     setDeleteModal(false);
     setShowLoader(true);
     WebService.deleteAPI({
-      action: `roles/delete//${editData?.id}`,
+      action: `api/user/delete/role/${editData?.id}`,
       body: null,
     })
       .then((res: any) => {

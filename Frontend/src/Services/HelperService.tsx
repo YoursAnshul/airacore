@@ -275,7 +275,6 @@ const HelperService = {
   getFormatedDateandYear(d: any) {
     return d ? moment.utc(d).format("YYYY-M-D") : "";
   },
-
   
   getFormattedDatebyText(dt: any) {
     console.log(dt);

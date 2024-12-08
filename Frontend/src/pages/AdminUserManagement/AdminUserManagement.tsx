@@ -154,25 +154,26 @@ const AdminUserManagement = () => {
   };
 
   const getAllRoleList = () => {
-    // WebService.getAPI({
-    //   action: `roles/all`,
-    // })
-    //   .then((res: any) => {
-    //     let temp: any[] = [];
-    //     for (var i in res) {
-    //       temp.push({ id: res[i].id, value: res[i].name });
-    //     }
+    WebService.getAPI({
+      action: `api/user/roles`,
+    })
+      .then((res: any) => {
+        let temp: any[] = [];
+        for (var i in res) {
+          temp.push({ id: res[i].id, value: res[i].name });
+        }
 
-    //     setAllRoleList(temp);
-    //   })
-    //   .catch(() => { });
+        setAllRoleList(temp);
+      })
+      .catch(() => { });
   };
 
   const addUser = (data: any) => {
     if (data.id) {
+      const { createdDate, ...dataToUpdate } = data;
       WebService.putAPI({
-        action: "admins/" + data.id,
-        body: data,
+        action: "api/user/update/user/" + data.id,
+        body: dataToUpdate,
         id: "add_country",
       })
         .then((res: any) => {
@@ -185,7 +186,7 @@ const AdminUserManagement = () => {
           toast.error("User Updatation Failed try again.");
         });
     } else {
-      WebService.postAPI({ action: "admins", body: data, id: "add_country" })
+      WebService.postAPI({ action: "api/auth/signup", body: data, id: "add_country" })
         .then((res: any) => {
           reset({});
           setShowAddUser(false);
@@ -232,8 +233,8 @@ const AdminUserManagement = () => {
 
           columns.push({
             value:
-            res.list[i].createdDate &&
-              HelperService.getFormattedDatebyText( res.list[i].createdDate),
+              res.list[i].createdDate &&
+              HelperService.getFormattedDatebyText(res.list[i].createdDate),
           });
 
           columns.push({ value: fullName ? fullName : "N/A" });
@@ -300,7 +301,7 @@ const AdminUserManagement = () => {
     setDeleteModal(false);
     setShowLoader(true);
     WebService.deleteAPI({
-      action: `admins/delete/${editData?.id}`,
+      action: `api/user/delete/user/${editData?.id}`,
       body: null,
     })
       .then((res: any) => {
@@ -463,6 +464,21 @@ const AdminUserManagement = () => {
             {errors.lastName && (
               <div className="login-error">
                 <Label title={"Last name required"} modeError={true} />
+              </div>
+            )}
+
+            <label className="mt-3">Mobile Number</label>
+            <div className="input-group mb-1 mt-2">
+              <input
+                type="text"
+                className="form-control ps-3 p-2"
+                placeholder="Mobile Number"
+                {...register("mobileNumber", { required: true })}
+              />
+            </div>
+            {errors.mobileNumber && (
+              <div className="login-error">
+                <Label title={"Mobile Number required"} modeError={true} />
               </div>
             )}
 
