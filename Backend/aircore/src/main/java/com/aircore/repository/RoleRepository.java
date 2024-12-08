@@ -2,6 +2,7 @@ package com.aircore.repository;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -11,6 +12,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import com.aircore.entity.Role;
+import com.aircore.entity.RoleMenuPermission;
 import com.aircore.response.RoleResponse;
 import com.aircore.utility.Enumeration.Status;
 
@@ -29,5 +31,9 @@ public interface RoleRepository extends JpaRepository<Role, Long> {
     
     List<Role> findByStatus(Status status);
 
-    
+    boolean existsByNameAndIdNot(String name, Long id);
+
+    @Query("SELECT rmp FROM RoleMenuPermission rmp WHERE rmp.role.id = :roleId")
+    Set<RoleMenuPermission> findByRoleId(@Param("roleId") Long roleId);
+
 }

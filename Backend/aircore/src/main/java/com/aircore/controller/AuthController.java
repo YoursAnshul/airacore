@@ -30,7 +30,7 @@ public class AuthController {
 	        );
 	    } catch (IllegalArgumentException e) {
 	        return ResponseEntity.badRequest().body(
-	            new AppResponse<>(false, "Invalid input", 400, null, e.getMessage())
+	            new AppResponse<>(false, e.getMessage(), 400, e, e.getMessage())
 	        );
 	    } catch (Exception e) {
 	        return ResponseEntity.status(500).body(

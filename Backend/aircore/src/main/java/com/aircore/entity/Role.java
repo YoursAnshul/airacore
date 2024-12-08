@@ -34,6 +34,7 @@ public class Role {
     private Status status;
 
     private Date createdDate;
+    private Date updatedDate;
 
     @ManyToMany
     @JoinTable(name = "role_menu", joinColumns = @JoinColumn(name = "role_id"), inverseJoinColumns = @JoinColumn(name = "menu_id"))

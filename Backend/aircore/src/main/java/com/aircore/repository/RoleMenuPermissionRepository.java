@@ -1,5 +1,7 @@
 package com.aircore.repository;
 
+import java.util.Set;
+
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import com.aircore.entity.Role;
@@ -10,5 +12,7 @@ public interface RoleMenuPermissionRepository extends JpaRepository<RoleMenuPerm
 	void deleteAllByRole(Role role);
 
 	void deleteByRoleId(Long roleId);
+
+	Set<RoleMenuPermission> findByRoleId(Long roleId);
 
 }
