@@ -69,9 +69,7 @@ const AddRole = () => {
       console.log("commonData--->", commonData.role.id);
       onRoleDetails(commonData.role.id)
       // reset(commonData?.role);
-      if (commonData?.role?.menus && commonData?.role?.menus.length > 0) {
-        setTableData(commonData?.role?.menus);
-      }
+     
       dispatch(setDataInRedux({ type: ADD_ROLE_DATA, value: {} }));
       setIsEdit(true);
     } else {
@@ -79,18 +77,42 @@ const AddRole = () => {
     }
   }, []);
 
-  const onRoleDetails=(id:any)=>{
+  const onRoleDetails = (id: any) => {
     WebService.getAPI({
-      action:`api/user/roles/${id}/details`
-    }).then((res:any)=>{
-      reset(res)
-      setTableData(res?.menus);
-
-      
-    }).catch(()=>{
-
+      action: `api/user/roles/${id}/details`
     })
-  }
+      .then((res: any) => {
+        reset(res); // Assuming this resets your form or UI with the role details
+  
+        const updatedTableData = listData.map((item) => {
+          // Find the matching menu from the response
+          const matchedMenu = res?.menus?.find(
+            (menu: any) => menu.name === item.name
+          );
+  
+          // Update the menu data if a match is found; otherwise, keep the default
+          return matchedMenu
+            ? {
+                ...item,
+                isCreate: matchedMenu.isCreate,
+                isRead: matchedMenu.isRead,
+                isUpdate: matchedMenu.isUpdate,
+                isDelete: matchedMenu.isDelete,
+                status: matchedMenu.status,
+                createdAt: matchedMenu.createdAt,
+                updatedAt: matchedMenu.updatedAt,
+              }
+            : item;
+        });
+  
+        // Update the table with the merged data
+        setTableData(updatedTableData);
+      })
+      .catch(() => {
+        // Handle any errors if needed
+      });
+  };
+  
 
   // const onChangeField = (id: number, type: string) => {
   //   setTableData(
@@ -163,12 +185,10 @@ const AddRole = () => {
 
   
 const checkAllCheckboxes = () => {
-  //   setTableData([])
   const allChecked = tableData.every(item => 
     item.isCreate && item.isRead && item.isUpdate && item.isDelete
   );
 
-  // Toggle all fields
   const updatedTableData = tableData.map(item => ({
     ...item,
     isCreate: !allChecked,

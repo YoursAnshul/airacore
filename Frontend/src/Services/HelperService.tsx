@@ -63,6 +63,18 @@ const HelperService = {
     }
   },
 
+  mobileNumberValidation(e: any) {
+    var numbers = /^[0-9]$/;
+    if (!e.key.match(numbers) && e.keyCode != 8) {
+      e.preventDefault();
+      return false;
+    }
+    if (e.currentTarget.value.length >= 10) {
+      e.preventDefault();
+      return false;
+    }
+  },
+
   allowOnlyNumericValueUpto2(e: any) {
     var numbers = /^[0-9]$/;
     if (!e.key.match(numbers) && e.keyCode != 8) {

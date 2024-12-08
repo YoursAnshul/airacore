@@ -13,6 +13,7 @@ import { toast } from 'react-toastify';
 import { useDispatch } from 'react-redux';
 import { FORGET_PASSWORD_DATA, setDataInRedux } from '../../action/CommonAction';
 import { Row, Col, Card, Form, Button, Offcanvas } from "react-bootstrap";
+import HelperService from '../../Services/HelperService';
 
 
 const ForgotPassword = () => {
@@ -102,6 +103,7 @@ const ForgotPassword = () => {
                                             type="text"
                                             className="form-control ps-3 p-2"
                                             placeholder="Mobile Number"
+                                            onKeyPress={HelperService.mobileNumberValidation}
                                             {...register("mobileNumber", { required: true })}
                                         />
                                     </div>

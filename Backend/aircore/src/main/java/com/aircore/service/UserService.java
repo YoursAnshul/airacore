@@ -211,18 +211,25 @@ public class UserService {
         role.setStatus(Status.ACTIVE);
         role.setCreatedDate(new Date());
 
-        if (roleRepository.existsByName(roleRequest.getName())) {
+        if (roleRepository.existsByNameAndStatus(roleRequest.getName(), Status.ACTIVE)) {
             throw new RuntimeException("Role name '" + roleRequest.getName() + "' already exists");
         }
-        
-        Role savedRole = roleRepository.save(role);
 
+        Role savedRole = roleRepository.save(role);
         HashSet<Menu> menus = new HashSet<>();
+
         for (MenuRequest menuRequest : roleRequest.getMenus()) {
             Menu menu = menuRepository.findByName(menuRequest.getName())
                     .orElseThrow(() -> new RuntimeException("Menu not found: " + menuRequest.getName()));
 
-            menus.add(menu);
+            boolean isAllFalse = !menuRequest.getIsCreate() && !menuRequest.getIsRead()
+                    && !menuRequest.getIsUpdate() && !menuRequest.getIsDelete();
+
+            if (isAllFalse) {
+                roleMenuPermissionRepository.deleteByRoleAndMenu(savedRole, menu);
+                continue; 
+            }
+
             Permission permission = new Permission();
             permission.setIsCreate(menuRequest.getIsCreate());
             permission.setIsRead(menuRequest.getIsRead());
@@ -231,6 +238,7 @@ public class UserService {
             permission.setStatus(Status.ACTIVE);
             permission.setCreatedAt(new Date());
             permission.setUpdatedAt(new Date());
+
             Permission savedPermission = permissionRepository.save(permission);
 
             RoleMenuPermission roleMenuPermission = new RoleMenuPermission();
@@ -239,12 +247,13 @@ public class UserService {
             roleMenuPermission.setPermission(savedPermission);
 
             roleMenuPermissionRepository.save(roleMenuPermission);
+            menus.add(menu);
         }
 
         savedRole.setMenus(menus);
-        roleRepository.save(savedRole);
-        return savedRole;
+        return roleRepository.save(savedRole);
     }
+
 
     public List<RoleResponseDropdown> getActiveRolesForDropdown() {
         List<Role> activeRoles = roleRepository.findByStatus(Status.ACTIVE);
@@ -258,7 +267,7 @@ public class UserService {
                 .orElseThrow(() -> new EntityNotFoundException("User not found with id: " + id));
 
         if (!existingUser.getEmail().equals(userRequest.getEmail()) &&
-            userRepository.existsByEmail(userRequest.getEmail())) {
+            userRepository.existsByEmailAndStatus(userRequest.getEmail(), Status.ACTIVE)) {
             throw new Exception("Email is already in use by another user.");
         }
 
@@ -313,6 +322,7 @@ public class UserService {
         roleRepository.save(role);
     }
     
+    @Transactional
     public Role updateRole(Long roleId, RoleRequest roleRequest) {
         Role existingRole = roleRepository.findById(roleId)
                 .orElseThrow(() -> new RuntimeException("Role not found with ID: " + roleId));
@@ -334,6 +344,14 @@ public class UserService {
         for (MenuRequest menuRequest : roleRequest.getMenus()) {
             Menu menu = menuRepository.findByName(menuRequest.getName())
                     .orElseThrow(() -> new RuntimeException("Menu not found: " + menuRequest.getName()));
+
+            boolean isAllFalse = !menuRequest.getIsCreate() && !menuRequest.getIsRead()
+                    && !menuRequest.getIsUpdate() && !menuRequest.getIsDelete();
+
+            if (isAllFalse) {
+                roleMenuPermissionRepository.deleteByRoleAndMenu(existingRole, menu);
+                continue;
+            }
 
             RoleMenuPermission roleMenuPermission = existingPermissions.stream()
                     .filter(rmp -> rmp.getMenu().getId().equals(menu.getId()))
@@ -363,16 +381,15 @@ public class UserService {
         }
 
         for (Long menuId : existingMenuIds) {
-            RoleMenuPermission roleMenuPermission = existingPermissions.stream()
-                    .filter(rmp -> rmp.getMenu().getId().equals(menuId))
-                    .findFirst()
-                    .orElseThrow(() -> new RuntimeException("Invalid role-menu mapping"));
-            roleMenuPermissionRepository.delete(roleMenuPermission);
+            Menu staleMenu = menuRepository.findById(menuId)
+                    .orElseThrow(() -> new RuntimeException("Menu not found for ID: " + menuId));
+            roleMenuPermissionRepository.deleteByRoleAndMenu(existingRole, staleMenu);
         }
 
         existingRole.setMenus(updatedMenus);
         return roleRepository.save(existingRole);
     }
+
     
     public Map<String, Long> getUserCounts(DateRangeRequest dateRangeRequest) {
         LocalDate dateFrom = dateRangeRequest.getDateFrom() != null 

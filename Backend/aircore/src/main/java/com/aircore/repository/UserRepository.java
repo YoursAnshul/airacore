@@ -19,7 +19,8 @@ public interface UserRepository extends JpaRepository<User, Long> {
 
 	Optional<User> findByEmail(String email);
 
-	boolean existsByEmail(String email);
+	@Query("SELECT CASE WHEN COUNT(u) > 0 THEN TRUE ELSE FALSE END FROM User u WHERE u.email = :email AND u.status = :status")
+	boolean existsByEmailAndStatus(@Param("email") String email, @Param("status") Status status);
 
 	@Query("SELECT u FROM User u WHERE u.status = 'ACTIVE'")
 	Page<UserResponse> findByStatus(Pageable pageable);

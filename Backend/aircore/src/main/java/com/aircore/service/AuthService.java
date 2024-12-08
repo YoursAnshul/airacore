@@ -18,56 +18,58 @@ import com.aircore.utility.Enumeration.Status;
 @Service
 public class AuthService {
 
+	@Autowired
+	private UserRepository userRepository;
 
-    @Autowired
-    private UserRepository userRepository;
+	@Autowired
+	private RoleRepository roleRepository;
 
-    @Autowired
-    private RoleRepository roleRepository;
+	@Autowired
+	private PasswordEncoder passwordEncoder;
 
-    @Autowired
-    private PasswordEncoder passwordEncoder;
-    
-    @Autowired
-    private JwtUtil jwtUtil;
+	@Autowired
+	private JwtUtil jwtUtil;
 
-    public String registerUser(User user) {
-        if (userRepository.existsByEmail(user.getEmail())) {
-            throw new IllegalArgumentException("Email already exists");
-        }
+	public String registerUser(User user) {
+		if (userRepository.existsByEmailAndStatus(user.getEmail(), Status.ACTIVE)) {
+			throw new IllegalArgumentException("Email already exists");
+		}
 
-        if (userRepository.existsByMobileNumber(user.getMobileNumber())) {
-            throw new IllegalArgumentException("Mobile Number already exists");
-        }
-        user.setStatus(Status.ACTIVE);
-        user.setCreatedDate(new Date());
-        user.setPassword(passwordEncoder.encode(user.getPassword()));
-        if (user.getRoles() == null || user.getRoles().isEmpty()) {
-            Role defaultRole = roleRepository.findByName("USER")
-                    .orElseThrow(() -> new RuntimeException("Default role 'USER' not found"));
-            user.getRoles().add(defaultRole);
-        }
+		if (userRepository.existsByMobileNumber(user.getMobileNumber())) {
+			throw new IllegalArgumentException("Mobile Number already exists");
+		}
+		user.setStatus(Status.ACTIVE);
+		user.setCreatedDate(new Date());
+		user.setPassword(passwordEncoder.encode(user.getPassword()));
+		if (user.getRole() == null || user.getRole().isEmpty()) {
+			Role defaultRole = roleRepository.findByName("USER")
+					.orElseThrow(() -> new RuntimeException("Default role 'USER' not found"));
+			user.getRoles().add(defaultRole);
+		} else {
+			Role defaultRole = roleRepository.findByName(user.getRole())
+					.orElseThrow(() -> new RuntimeException("Default role 'USER' not found"));
+			user.getRoles().add(defaultRole);
+		}
 
-        userRepository.save(user);
-        return "User registered successfully";
-    }
-    
-    public TokenResponse authenticateUser(User user) throws InvalidCredentialsException {
-        User foundUser = userRepository.findByEmail(user.getEmail())
-                .orElseThrow(() -> new InvalidCredentialsException("Invalid credentials"));
+		userRepository.save(user);
+		return "User registered successfully";
+	}
 
-        if (!passwordEncoder.matches(user.getPassword(), foundUser.getPassword())) {
-            throw new InvalidCredentialsException("Invalid credentials");
-        }
+	public TokenResponse authenticateUser(User user) throws InvalidCredentialsException {
+		User foundUser = userRepository.findByEmail(user.getEmail())
+				.orElseThrow(() -> new InvalidCredentialsException("Invalid credentials"));
 
-        String token = jwtUtil.generateToken(foundUser.getEmail(), "USER");
+		if (!passwordEncoder.matches(user.getPassword(), foundUser.getPassword())) {
+			throw new InvalidCredentialsException("Invalid credentials");
+		}
 
-        TokenResponse response = new TokenResponse();
-        response.setToken(token);
-        response.setStatus("Success");
-        response.setRole("USER");
-        return response;
-    }
+		String token = jwtUtil.generateToken(foundUser.getEmail(), "USER");
 
-	
+		TokenResponse response = new TokenResponse();
+		response.setToken(token);
+		response.setStatus("Success");
+		response.setRole("USER");
+		return response;
+	}
+
 }

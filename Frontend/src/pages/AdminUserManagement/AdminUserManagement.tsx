@@ -160,7 +160,7 @@ const AdminUserManagement = () => {
       .then((res: any) => {
         let temp: any[] = [];
         for (var i in res) {
-          temp.push({ id: res[i].id, value: res[i].name });
+          temp.push({ id: res[i].name, value: res[i].name });
         }
 
         setAllRoleList(temp);
@@ -244,7 +244,7 @@ const AdminUserManagement = () => {
           });
           columns.push({
             value: statusList(
-              res.list[i].current_status ? res.list[i].current_status : "N/A"
+              res.list[i].status ? res.list[i].status : "N/A"
             ),
           });
           columns.push({
@@ -268,9 +268,9 @@ const AdminUserManagement = () => {
   };
 
   const statusList = (status: string) => {
-    if (status === "online") {
+    if (status === "ACTIVE") {
       return (
-        <span className="badge bg-success-subtle text-success">Online</span>
+        <span className="badge bg-success-subtle text-success">Active</span>
       );
     } else if (status === "offline") {
       return (
@@ -473,6 +473,7 @@ const AdminUserManagement = () => {
                 type="text"
                 className="form-control ps-3 p-2"
                 placeholder="Mobile Number"
+                onKeyPress={HelperService.mobileNumberValidation}
                 {...register("mobileNumber", { required: true })}
               />
             </div>
@@ -606,7 +607,7 @@ const AdminUserManagement = () => {
                       <Form.Label>Role Options</Form.Label>
                       <ShancoSelect
                         onChange={(e: any) => {
-                          field.onChange(e.id);
+                          field.onChange(e.value);
                         }}
                         options={isAllRoleList}
                         // selected={watch().role}
