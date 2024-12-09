@@ -64,7 +64,7 @@ const Login = () => {
                                
                                 <form onSubmit={handleSubmit(handleLogin)}>
                                     <div className=" ">
-                                        <h1 className="text-light mb-4 font-bold text-center h2">Welcome to AirCore</h1>
+                                        <h1 className="text-light mb-4 font-bold text-center h2">Welcome to IMS</h1>
 
                                         <Controller
                                             control={control}

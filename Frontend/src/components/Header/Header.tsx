@@ -80,7 +80,7 @@ const Header = () => {
                     <Navbar expand="lg">
                         <Navbar.Brand className="me-5">
                             {/* <img src={Logo} width={186} height={30} alt='' /> */}
-                            <h2 className="text-white">AirCore</h2>
+                            <h2 className="text-white">IMS</h2>
                         </Navbar.Brand>
                         <Navbar.Toggle aria-controls="basic-navbar-nav" />
                         <div className="d-flex align-items-center ms-auto gap-3" >
