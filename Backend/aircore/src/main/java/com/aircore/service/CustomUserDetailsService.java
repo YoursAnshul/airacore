@@ -12,6 +12,7 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
 import com.aircore.repository.UserRepository;
+import com.aircore.utility.Enumeration.Status;
 
 @Service
 public class CustomUserDetailsService implements UserDetailsService {
@@ -21,7 +22,7 @@ public class CustomUserDetailsService implements UserDetailsService {
 
 	@Override
 	public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-		Optional<com.aircore.entity.User> opt = adminRepository.findByEmail(username);
+		Optional<com.aircore.entity.User> opt = adminRepository.findByEmailAndStatus(username,Status.ACTIVE);
 		System.out.println(username);
 		if (!opt.isPresent()) {
 			com.aircore.entity.User user = opt.get();

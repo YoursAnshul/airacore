@@ -56,7 +56,7 @@ public class AuthService {
 	}
 
 	public TokenResponse authenticateUser(User user) throws InvalidCredentialsException {
-		User foundUser = userRepository.findByEmail(user.getEmail())
+		User foundUser = userRepository.findByEmailAndStatus(user.getEmail(),Status.ACTIVE)
 				.orElseThrow(() -> new InvalidCredentialsException("Invalid credentials"));
 
 		if (!passwordEncoder.matches(user.getPassword(), foundUser.getPassword())) {
