@@ -96,11 +96,11 @@ public class LoginLogoutLogsService {
         );
     }
 	
-	public Page<LoginLogoutLogsDetailsResponse> getLoginLogoutDetails(Long loginLogoutLogsId, Long userId,
+	public Page<LoginLogoutLogsDetailsResponse> getLoginLogoutDetails(Long loginLogoutLogsId,
 	        LocalDate dateFrom, LocalDate dateTo, Pageable pageable) {
 
 	    return loginLogoutLogsDetailsRepository.findLoginLogoutDetailsByLogsId(
-	            loginLogoutLogsId, userId, dateFrom, dateTo, pageable);
+	            loginLogoutLogsId, dateFrom, dateTo, pageable);
 	}
 
 

@@ -18,12 +18,17 @@ public interface LoginLogoutLogsDetailsRepository extends JpaRepository<LoginLog
 
 	Optional<LoginLogoutLogsDetails> findTopByLoginLogoutLogsIdOrderByCreatedAtDesc(Long loginLogoutLogsId);
 
-	@Query("SELECT new com.aircore.response.LoginLogoutLogsDetailsResponse(" + "lld.loginTime, lld.logoutTime) "
-			+ "FROM LoginLogoutLogsDetails lld " + "JOIN lld.loginLogoutLogs ll " + "WHERE ll.id = :loginLogoutLogsId "
-			+ "AND (:userId IS NULL OR ll.userId = :userId) " + "AND (:dateFrom IS NULL OR lld.loginTime >= :dateFrom) "
-			+ "AND (:dateTo IS NULL OR lld.logoutTime <= :dateTo)")
-	Page<LoginLogoutLogsDetailsResponse> findLoginLogoutDetailsByLogsId(
-			@Param("loginLogoutLogsId") Long loginLogoutLogsId, @Param("userId") Long userId,
-			@Param("dateFrom") LocalDate dateFrom, @Param("dateTo") LocalDate dateTo, Pageable pageable);
+	@Query("SELECT new com.aircore.response.LoginLogoutLogsDetailsResponse(" +
+		       "lld.loginTime, lld.logoutTime) " +
+		       "FROM LoginLogoutLogsDetails lld " +
+		       "JOIN lld.loginLogoutLogs ll " +
+		       "WHERE ll.id = :loginLogoutLogsId " +
+		       "AND (:dateFrom IS NULL OR lld.loginTime >= :dateFrom) " +
+		       "AND (:dateTo IS NULL OR lld.logoutTime <= :dateTo)")
+		Page<LoginLogoutLogsDetailsResponse> findLoginLogoutDetailsByLogsId(
+		        @Param("loginLogoutLogsId") Long loginLogoutLogsId,
+		        @Param("dateFrom") LocalDate dateFrom,
+		        @Param("dateTo") LocalDate dateTo,
+		        Pageable pageable);
 
 }

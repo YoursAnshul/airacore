@@ -90,10 +90,9 @@ public class LoginLogoutLogsController {
     }
 	
 	
-	@GetMapping("/logs-details/{loginLogoutLogsId}/{userId}/{page}")
+	@GetMapping("/logs-details/{loginLogoutLogsId}/{page}")
 	public ResponseEntity<PageableResponse<LoginLogoutLogsDetailsResponse>> getLoginLogoutDetails(
 	        @PathVariable Long loginLogoutLogsId,
-	        @PathVariable Long userId,
 	        @PathVariable int page,
 	        @RequestParam(required = false) LocalDate dateFrom,
 	        @RequestParam(required = false) LocalDate dateTo) {
@@ -103,7 +102,7 @@ public class LoginLogoutLogsController {
 	    }
 
 	    Page<LoginLogoutLogsDetailsResponse> detailsPage = loginLogoutLogsService.getLoginLogoutDetails(
-	            loginLogoutLogsId, userId, dateFrom, dateTo, PageRequest.of(page, Constant.LIMIT_10));
+	            loginLogoutLogsId, dateFrom, dateTo, PageRequest.of(page, Constant.LIMIT_10));
 
 	    PageableResponse<LoginLogoutLogsDetailsResponse> response = new PageableResponse<>(
 	            (int) detailsPage.getTotalElements(), detailsPage.getContent());

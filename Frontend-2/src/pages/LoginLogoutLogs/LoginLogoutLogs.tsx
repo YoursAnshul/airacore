@@ -161,6 +161,7 @@ const LoginLogoutLogs = () => {
 
   const getLoginLogoutLogsDetails = (
     page: number,
+    logId: number,
     keyword?: string,
     startDate?: Date,
     endDate?: Date
@@ -168,7 +169,7 @@ const LoginLogoutLogs = () => {
     pageCount.current = page;
     setShowLoader(true);
     WebService.getAPI({
-      action: `api/login-logout-logs/logs/${page}?keyword=${keyword ? keyword : ""}&date_from=${startDate ? startDate : ""
+      action: `api/login-logout-logs/logs-details/${logId}/${page}?keyword=${keyword ? keyword : ""}&date_from=${startDate ? startDate : ""
         }&date_to=${endDate ? endDate : ""}`,
       body: null,
     })
@@ -197,6 +198,7 @@ const LoginLogoutLogs = () => {
         }
         rowCompute.current = rows;
         setRows(rowCompute.current);
+        setShowModal(true);
       })
       .catch((e) => {
         setShowLoader(false);
@@ -237,7 +239,7 @@ const LoginLogoutLogs = () => {
 
   const openModal = (data: any) => {
     console.log(data)
-    setShowModal(true);
+    getLoginLogoutLogsDetails(1, data.id);
   };
 
   const handleClose = () => {
@@ -304,8 +306,8 @@ const LoginLogoutLogs = () => {
   }
 
   const onDetailsPageChange = (data: any, value: string, startDate: any, endDate: any) => {
-    setPage(data)
-    getLoginLogoutLogs(data, value, startDate, endDate)
+    setDetailsPage(data)
+    getLoginLogoutLogsDetails(data, 2, value, startDate, endDate)
   }
 
   return (
@@ -333,7 +335,7 @@ const LoginLogoutLogs = () => {
               ShowLoader={ShowLoader}
               showSearch={true}
               count={totalCount}
-              onPageChange={onPageChange}
+              onPageChange={onDetailsPageChange}
               errorMessage={"No Customer Group Found"}
             />
           )}
