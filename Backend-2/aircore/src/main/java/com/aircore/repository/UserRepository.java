@@ -17,8 +17,6 @@ import com.aircore.utility.Enumeration.Status;
 @Repository
 public interface UserRepository extends JpaRepository<User, Long> {
 
-	Optional<User> findByEmail(String email);
-
 	@Query("SELECT CASE WHEN COUNT(u) > 0 THEN TRUE ELSE FALSE END FROM User u WHERE u.email = :email AND u.status = :status")
 	boolean existsByEmailAndStatus(@Param("email") String email, @Param("status") Status status);
 
@@ -40,5 +38,7 @@ public interface UserRepository extends JpaRepository<User, Long> {
 	@Query("SELECT COUNT(u) FROM User u WHERE u.status = :status AND u.createdDate >= :dateFrom AND u.createdDate <= :dateTo")
 	Long countByStatusAndCreatedDateBetween(@Param("status") Status status, @Param("dateFrom") Date dateFrom,
 			@Param("dateTo") Date dateTo);
+	
+	Optional<User> findByEmailAndStatus(String email, Status active);
 
 }

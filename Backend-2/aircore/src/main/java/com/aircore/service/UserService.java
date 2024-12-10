@@ -68,7 +68,7 @@ public class UserService {
         String token = authHeader.replace("Bearer ", "");
         String username = jwtUtil.extractUsername(token);
 
-        User user = userRepository.findByEmail(username)
+        User user = userRepository.findByEmailAndStatus(username,Status.ACTIVE)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
         Map<String, Object> response = new HashMap<>();
