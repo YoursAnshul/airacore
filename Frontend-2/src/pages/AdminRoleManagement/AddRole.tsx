@@ -40,6 +40,13 @@ const listData: any[] = [
     isUpdate: false,
     isDelete: false,
     isCreate: false,
+  },
+  {
+    name: "Login Logout Logs",
+    isRead: false,
+    isUpdate: false,
+    isDelete: false,
+    isCreate: false,
   }
 ];
 

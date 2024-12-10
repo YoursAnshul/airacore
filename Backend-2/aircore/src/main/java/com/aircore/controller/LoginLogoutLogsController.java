@@ -1,6 +1,11 @@
 package com.aircore.controller;
 
+import java.time.LocalDate;
+import java.util.List;
+
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -11,8 +16,13 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.aircore.response.AppResponse;
+import com.aircore.response.LoginLogoutLogsDetailsResponse;
+import com.aircore.response.LoginLogoutLogsResponse;
 import com.aircore.response.LoginStatusResponse;
+import com.aircore.response.PageableResponse;
 import com.aircore.service.LoginLogoutLogsService;
+import com.aircore.utility.Constant;
+import com.aircore.utility.Enumeration.LoginType;
 
 @RestController
 @RequestMapping("/api/login-logout-logs")
@@ -57,5 +67,50 @@ public class LoginLogoutLogsController {
 	        return new ResponseEntity<>(appResponse, HttpStatus.INTERNAL_SERVER_ERROR);
 	    }
 	}
+	
+	@GetMapping("/logs/{page}")
+    public ResponseEntity<PageableResponse<LoginLogoutLogsResponse>> getFilteredLogs(
+            @PathVariable int page,
+            @RequestParam(required = false) Long userId,
+            @RequestParam(required = false) LoginType loginType,
+            @RequestParam(required = false) LocalDate dateFrom,
+            @RequestParam(required = false) LocalDate dateTo) {
+
+        if (page > 0) {
+            page = page - 1;
+        }
+
+        Page<LoginLogoutLogsResponse> logsPage = loginLogoutLogsService.getFilteredLogs(
+                userId, loginType, dateFrom, dateTo, PageRequest.of(page, Constant.LIMIT_10));
+
+        PageableResponse<LoginLogoutLogsResponse> response = new PageableResponse<>(
+                (int) logsPage.getTotalElements(), logsPage.getContent());
+
+        return ResponseEntity.ok(response);
+    }
+	
+	
+	@GetMapping("/logs-details/{loginLogoutLogsId}/{userId}/{page}")
+	public ResponseEntity<PageableResponse<LoginLogoutLogsDetailsResponse>> getLoginLogoutDetails(
+	        @PathVariable Long loginLogoutLogsId,
+	        @PathVariable Long userId,
+	        @PathVariable int page,
+	        @RequestParam(required = false) LocalDate dateFrom,
+	        @RequestParam(required = false) LocalDate dateTo) {
+
+	    if (page > 0) {
+	        page = page - 1; 
+	    }
+
+	    Page<LoginLogoutLogsDetailsResponse> detailsPage = loginLogoutLogsService.getLoginLogoutDetails(
+	            loginLogoutLogsId, userId, dateFrom, dateTo, PageRequest.of(page, Constant.LIMIT_10));
+
+	    PageableResponse<LoginLogoutLogsDetailsResponse> response = new PageableResponse<>(
+	            (int) detailsPage.getTotalElements(), detailsPage.getContent());
+
+	    return ResponseEntity.ok(response);
+	}
+
+
 
 }

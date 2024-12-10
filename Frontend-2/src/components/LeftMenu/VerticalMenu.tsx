@@ -48,6 +48,12 @@ const VerticalMenu = () => {
             label: "Admin Role Management",
             icon: <MdManageAccounts className="menu-icon" />,
         },
+        {
+            id: 4,
+            path: "/login-logout",
+            label: "Login Logout Management",
+            icon: <MdManageAccounts className="menu-icon" />,
+        },
     ];
 
     return (

@@ -1,15 +1,20 @@
 package com.aircore.service;
 
+import java.time.LocalDate;
 import java.util.Date;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import com.aircore.entity.LoginLogoutLogs;
 import com.aircore.entity.LoginLogoutLogsDetails;
 import com.aircore.repository.LoginLogoutLogsDetailsRepository;
 import com.aircore.repository.LoginLogoutLogsRepository;
+import com.aircore.response.LoginLogoutLogsDetailsResponse;
+import com.aircore.response.LoginLogoutLogsResponse;
 import com.aircore.response.LoginStatusResponse;
 import com.aircore.utility.Enumeration.CurrentStatus;
 import com.aircore.utility.Enumeration.LoginType;
@@ -80,5 +85,23 @@ public class LoginLogoutLogsService {
 	    }
 	    return new LoginStatusResponse(true, lastLog.getId());  // User is logged in, return loginId
 	}
+
+	public Page<LoginLogoutLogsResponse> getFilteredLogs(Long userId, LoginType loginType, LocalDate dateFrom, LocalDate dateTo, Pageable pageable) {
+        return loginLogoutLogsRepository.findFilteredLogs(
+                userId,
+                loginType,
+                dateFrom != null ? java.sql.Date.valueOf(dateFrom) : null,
+                dateTo != null ? java.sql.Date.valueOf(dateTo) : null,
+                pageable
+        );
+    }
+	
+	public Page<LoginLogoutLogsDetailsResponse> getLoginLogoutDetails(Long loginLogoutLogsId, Long userId,
+	        LocalDate dateFrom, LocalDate dateTo, Pageable pageable) {
+
+	    return loginLogoutLogsDetailsRepository.findLoginLogoutDetailsByLogsId(
+	            loginLogoutLogsId, userId, dateFrom, dateTo, pageable);
+	}
+
 
 }

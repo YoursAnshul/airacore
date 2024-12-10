@@ -10,7 +10,6 @@ const Dashboard = () => {
   const userInfoData: any = useSelector<RootState, any>((state: any) => state.userInfoData);
   const [loginId, setLoginId] = useState<number | null>(null);
 
-  // This function will check the user login status and update the UI accordingly
   const getUserData = (id: any) => {
     if (id) {
       WebService.getAPI({ action: `api/login-logout-logs/status/${id}`, id: "status-check" })
@@ -19,8 +18,7 @@ const Dashboard = () => {
             const { loggedIn, loginId } = response?.data;
             setIsLoggedIn(loggedIn);
             if (loggedIn && loginId) {
-              // Store loginId or use it for other operations
-              setLoginId(loginId);  // Assuming you use `loginId` somewhere
+              setLoginId(loginId);  
             }
           }
         })
@@ -31,7 +29,6 @@ const Dashboard = () => {
   };
   
 
-  // Handle Login/Logout toggle
   const handleAuthToggle = () => {
     if (isLoggedIn) {
       logout();
@@ -40,7 +37,6 @@ const Dashboard = () => {
     }
   };
 
-  // Call to API to log the user in
   const login = () => {
     WebService.postAPI({
       action: `api/login-logout-logs/login/${userInfoData?.user_info?.id}?loginType=WEB_CLOCK_IN`,
@@ -57,9 +53,8 @@ const Dashboard = () => {
       });
   };
 
-  // Call to API to log the user out
   const logout = () => {
-    if (loginId) {  // Ensure loginId exists before sending it
+    if (loginId) {  
       WebService.postAPI({
         action: `api/login-logout-logs/logout/${loginId}`,
         id: "logout-btn",

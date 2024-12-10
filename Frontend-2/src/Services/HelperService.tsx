@@ -1,4 +1,6 @@
 import moment from "moment";
+const momentTime = require('moment-timezone');
+
 const HelperService = {
 
   addMinutes(date: any, minutes: number) {
@@ -300,7 +302,15 @@ getFormattedDatebyTextAndTime(dt: any) {
 },
 
   getFormatedDateAndTime(dt: any) {
-    return moment.utc(dt).format("MM/DD/YY, hh:mm A");
+    return momentTime(dt).tz('Asia/Kolkata').format("MM/DD/YY, hh:mm A");
+  },
+
+  getFormatedDateIST(dt: any) {
+    return momentTime(dt).tz('Asia/Kolkata').format("MM/DD/YYYY");
+  },
+
+  getFormatedIST(dt: any) {
+    return momentTime(dt).tz('Asia/Kolkata').format("hh:mm A");
   },
 
   getFormatedDateAndTimeWithoutUTC(dt: any) {
