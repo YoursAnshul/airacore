@@ -10,4 +10,12 @@ public class Enumeration {
 		ACTIVE, DELETED
 	}
 	
+	public enum LoginType {
+		WEB_CLOCK_IN, WFO, PARTIAL_DAY
+	}
+	
+	public enum CurrentStatus {
+		LOGIN, LOGOUT
+	}
+	
 }
