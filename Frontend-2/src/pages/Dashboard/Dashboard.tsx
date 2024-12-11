@@ -1,14 +1,17 @@
-import React, { useEffect, useState } from "react";
-import { Row, Col, Card, Button, Dropdown } from "react-bootstrap";
+import React, { useEffect, useRef, useState } from "react";
+import { Row, Col, Card, Button, Dropdown, Modal, Form } from "react-bootstrap";
 import { useSelector, useDispatch } from "react-redux";
 import { RootState } from "../../config/Store";
 import WebService from "../../Services/WebService";
+import { toast } from "react-toastify";
 
 const Dashboard = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [currentTime, setCurrentTime] = useState(new Date());
   const userInfoData: any = useSelector<RootState, any>((state: any) => state.userInfoData);
-  const [loginId, setLoginId] = useState<number | null>(null);
+  const loggedId = useRef<number>(0);
+  const [isLogoutPopupVisible, setIsLogoutPopupVisible] = useState(false);
+  const [logoutDescription, setLogoutDescription] = useState("");
 
   const getUserData = (id: any) => {
     if (id) {
@@ -18,7 +21,7 @@ const Dashboard = () => {
             const { loggedIn, loginId } = response?.data;
             setIsLoggedIn(loggedIn);
             if (loggedIn && loginId) {
-              setLoginId(loginId);  
+              loggedId.current = loginId;
             }
           }
         })
@@ -27,11 +30,11 @@ const Dashboard = () => {
         });
     }
   };
-  
+
 
   const handleAuthToggle = () => {
     if (isLoggedIn) {
-      logout();
+      handleLogoutClick();
     } else {
       login();
     }
@@ -45,7 +48,7 @@ const Dashboard = () => {
       .then((response: any) => {
         if (response?.success) {
           setIsLoggedIn(true);
-          console.log("Logged in successfully");
+          toast.success("Logged in successfully");
         }
       })
       .catch((error: any) => {
@@ -53,24 +56,45 @@ const Dashboard = () => {
       });
   };
 
+  const handleLogoutClick = () => {
+    setLogoutDescription("");
+    setIsLogoutPopupVisible(true);
+  };
+
+  const handleLogoutSubmit = () => {
+    logout();
+  };
+
   const logout = () => {
-    if (loginId) {  
-      WebService.postAPI({
-        action: `api/login-logout-logs/logout/${loginId}`,
-        id: "logout-btn",
-      })
+      WebService.getAPI({ action: `api/login-logout-logs/status/${userInfoData?.user_info?.id}`, id: "status-check" })
         .then((response: any) => {
           if (response?.success) {
-            setIsLoggedIn(false);
-            console.log("Logged out successfully");
+            const { loggedIn, loginId } = response?.data;
+            setIsLoggedIn(loggedIn);
+            if (loggedIn && loginId) {
+              WebService.postAPI({
+                action: `api/login-logout-logs/logout/${loginId}`,
+                id: "logout-btn",
+                body: { description: logoutDescription }
+              })
+                .then((response: any) => {
+                  if (response?.success) {
+                    setIsLoggedIn(false);
+                    toast.success("Logged out successfully");
+                    setIsLogoutPopupVisible(false);
+                  }
+                })
+                .catch((error: any) => {
+                  console.error("Logout failed", error);
+                });
+            }
           }
         })
         .catch((error: any) => {
-          console.error("Logout failed", error);
+          console.error("Error fetching user data", error);
         });
-    }
   };
-  
+
   useEffect(() => {
     const interval = setInterval(() => {
       setCurrentTime(new Date());
@@ -207,6 +231,33 @@ const Dashboard = () => {
           </Card>
         </Col>
       </Row>
+
+      <Modal show={isLogoutPopupVisible} onHide={() => setIsLogoutPopupVisible(false)}>
+        <Modal.Header closeButton>
+          <Modal.Title>Logout Confirmation</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          <Form.Group controlId="logoutDescription">
+            <Form.Label>Enter Completed Task</Form.Label>
+            <Form.Control
+              as="textarea"
+              rows={3}
+              value={logoutDescription}
+              onChange={(e) => setLogoutDescription(e.target.value)}
+              placeholder="Enter any updates or reason for logging out..."
+            />
+          </Form.Group>
+        </Modal.Body>
+        <Modal.Footer>
+          <Button variant="secondary" onClick={() => setIsLogoutPopupVisible(false)}>
+            Cancel
+          </Button>
+          <Button disabled={!logoutDescription} className="btn-brand-1"
+            onClick={handleLogoutSubmit}>
+            Submit and Logout
+          </Button>
+        </Modal.Footer>
+      </Modal>
     </div>
   );
 };

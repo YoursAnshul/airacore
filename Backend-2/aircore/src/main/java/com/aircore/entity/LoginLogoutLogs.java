@@ -54,6 +54,8 @@ public class LoginLogoutLogs {
 	@Enumerated(EnumType.STRING)
 	private CurrentStatus currentStatus;
 
+	private String description;
+	
     @OneToMany(mappedBy = "loginLogoutLogs", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<LoginLogoutLogsDetails> details;
     

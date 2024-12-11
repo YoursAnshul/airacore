@@ -1,16 +1,18 @@
 package com.aircore.controller;
 
 import java.time.LocalDate;
-import java.util.List;
+import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -44,15 +46,22 @@ public class LoginLogoutLogsController {
 	}
 
 	@PostMapping("/logout/{logId}")
-	public ResponseEntity<AppResponse<?>> logout(@PathVariable Long logId) {
-		try {
-			loginLogoutLogsService.logout(logId);
-			AppResponse<?> appResponse = new AppResponse<>(true, "Logout successful", 200, null, null);
-			return new ResponseEntity<>(appResponse, HttpStatus.OK);
-		} catch (Exception e) {
-			AppResponse<?> appResponse = new AppResponse<>(false, "Failed to logout", 500, null, e.getMessage());
-			return new ResponseEntity<>(appResponse, HttpStatus.INTERNAL_SERVER_ERROR);
-		}
+	public ResponseEntity<AppResponse<?>> logout(@PathVariable Long logId, @RequestBody Map<String, String> requestBody) {
+	    try {
+	        String description = requestBody.get("description");
+	        if (description == null || description.trim().isEmpty()) {
+	            throw new IllegalArgumentException("Description is mandatory");
+	        }
+	        loginLogoutLogsService.logout(logId, description);
+	        AppResponse<?> appResponse = new AppResponse<>(true, "Logout successful", 200, null, null);
+	        return new ResponseEntity<>(appResponse, HttpStatus.OK);
+	    } catch (IllegalArgumentException e) {
+	        AppResponse<?> appResponse = new AppResponse<>(false, e.getMessage(), 400, null, e.getMessage());
+	        return new ResponseEntity<>(appResponse, HttpStatus.BAD_REQUEST);
+	    } catch (Exception e) {
+	        AppResponse<?> appResponse = new AppResponse<>(false, "Failed to logout", 500, null, e.getMessage());
+	        return new ResponseEntity<>(appResponse, HttpStatus.INTERNAL_SERVER_ERROR);
+	    }
 	}
 
 	@GetMapping("/status/{userId}")
@@ -69,25 +78,26 @@ public class LoginLogoutLogsController {
 	}
 	
 	@GetMapping("/logs/{page}")
-    public ResponseEntity<PageableResponse<LoginLogoutLogsResponse>> getFilteredLogs(
-            @PathVariable int page,
-            @RequestParam(required = false) Long userId,
-            @RequestParam(required = false) LoginType loginType,
-            @RequestParam(required = false) LocalDate dateFrom,
-            @RequestParam(required = false) LocalDate dateTo) {
+	public ResponseEntity<PageableResponse<LoginLogoutLogsResponse>> getFilteredLogs(
+	        @PathVariable int page,
+	        @RequestParam(required = false) Long userId,
+	        @RequestParam(required = false) LoginType loginType,
+			@RequestParam(required = false) String keyword,
+	        @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date_from,
+			@RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date_to) {
 
-        if (page > 0) {
-            page = page - 1;
-        }
+	    if (page > 0) {
+	        page = page - 1;
+	    }
+        System.out.println(date_from + " " + date_to);
+	    Page<LoginLogoutLogsResponse> logsPage = loginLogoutLogsService.getFilteredLogs(
+	            userId, loginType, date_from, date_to, keyword, PageRequest.of(page, Constant.LIMIT_10));
 
-        Page<LoginLogoutLogsResponse> logsPage = loginLogoutLogsService.getFilteredLogs(
-                userId, loginType, dateFrom, dateTo, PageRequest.of(page, Constant.LIMIT_10));
+	    PageableResponse<LoginLogoutLogsResponse> response = new PageableResponse<>(
+	            (int) logsPage.getTotalElements(), logsPage.getContent());
 
-        PageableResponse<LoginLogoutLogsResponse> response = new PageableResponse<>(
-                (int) logsPage.getTotalElements(), logsPage.getContent());
-
-        return ResponseEntity.ok(response);
-    }
+	    return ResponseEntity.ok(response);
+	}
 	
 	
 	@GetMapping("/logs-details/{loginLogoutLogsId}/{page}")

@@ -55,13 +55,18 @@ public class LoginLogoutLogsService {
 		loginLogoutLogsDetailsRepository.save(details);
 	}
 
-	public void logout(Long logId) {
+	public void logout(Long logId, String description) {
 		Date currentDate = new Date();
 		Optional<LoginLogoutLogs> existingLog = loginLogoutLogsRepository.findById(logId);
 
 		if (existingLog.isPresent()) {
 			LoginLogoutLogs log = existingLog.get();
 			log.setLogoutTime(currentDate);
+			if(log.getDescription() != null) {
+				log.setDescription(log.getDescription() + " " + description);
+			} else {
+				log.setDescription(description);
+			}
 			log.setCurrentStatus(CurrentStatus.LOGOUT);
 			loginLogoutLogsRepository.save(log);
 
@@ -71,6 +76,7 @@ public class LoginLogoutLogsService {
 			if (recentDetail.isPresent()) {
 				LoginLogoutLogsDetails details = recentDetail.get();
 				details.setLogoutTime(currentDate);
+				details.setDescription(description);
 				loginLogoutLogsDetailsRepository.save(details);
 			}
 		} else {
@@ -86,15 +92,15 @@ public class LoginLogoutLogsService {
 	    return new LoginStatusResponse(true, lastLog.getId());  // User is logged in, return loginId
 	}
 
-	public Page<LoginLogoutLogsResponse> getFilteredLogs(Long userId, LoginType loginType, LocalDate dateFrom, LocalDate dateTo, Pageable pageable) {
-        return loginLogoutLogsRepository.findFilteredLogs(
-                userId,
-                loginType,
-                dateFrom != null ? java.sql.Date.valueOf(dateFrom) : null,
-                dateTo != null ? java.sql.Date.valueOf(dateTo) : null,
-                pageable
-        );
-    }
+	public Page<LoginLogoutLogsResponse> getFilteredLogs(Long userId, LoginType loginType, LocalDate dateFrom, LocalDate dateTo, String combinationOfFirstNameAndLastName, Pageable pageable) {
+	    Date startDate = (dateFrom != null) ? java.sql.Date.valueOf(dateFrom) : null;
+	    Date endDate = (dateTo != null) ? java.sql.Date.valueOf(dateTo) : null;
+
+	    return loginLogoutLogsRepository.findFilteredLogs(
+	            userId, loginType, startDate, endDate, combinationOfFirstNameAndLastName, pageable
+	    );
+	}
+
 	
 	public Page<LoginLogoutLogsDetailsResponse> getLoginLogoutDetails(Long loginLogoutLogsId,
 	        LocalDate dateFrom, LocalDate dateTo, Pageable pageable) {

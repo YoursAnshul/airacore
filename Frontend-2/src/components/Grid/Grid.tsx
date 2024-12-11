@@ -769,9 +769,9 @@ const Grid = React.forwardRef((props: GridData, ref) => {
                 {firstDate && secondDate && (
                   <span>
                     <span className="filter-name">
-                      {`${moment(firstDate).format("MM/DD/YYYY")}` +
+                      {`${moment(firstDate).format("DD/MM/YYYY")}` +
                         " - " +
-                        `${moment(secondDate).format("MM/DD/YYYY")}`}{" "}
+                        `${moment(secondDate).format("DD/MM/YYYY")}`}{" "}
                       <X size={20} onClick={() => onResetDateFilter()} />
                     </span>
                   </span>
@@ -1021,7 +1021,7 @@ const Grid = React.forwardRef((props: GridData, ref) => {
                             className="form-control mt-0 bg-light border-end-0 text-dark bg-transparent"
                             value={
                               startDate &&
-                              moment(startDate).format("MM/DD/YYYY")
+                              moment(startDate).format("DD/MM/YYYY")
                             }
                           />
                           <span
@@ -1045,7 +1045,7 @@ const Grid = React.forwardRef((props: GridData, ref) => {
                             disabled
                             className="form-control mt-0 bg-light border-end-0 text-dark bg-transparent"
                             value={
-                              endDate && moment(endDate).format("MM/DD/YYYY")
+                              endDate && moment(endDate).format("DD/MM/YYYY")
                             }
                           />
                           <span

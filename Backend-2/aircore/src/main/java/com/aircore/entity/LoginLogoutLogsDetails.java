@@ -40,4 +40,7 @@ public class LoginLogoutLogsDetails {
 	@Column(name = "created_at", nullable = false, updatable = false)
 	private Date createdAt;
 
+	@Column(name = "description", nullable = true)
+	private String description;
+	
 }

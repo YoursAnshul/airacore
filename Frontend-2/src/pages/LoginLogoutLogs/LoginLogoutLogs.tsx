@@ -54,15 +54,37 @@ const headers: GridHeader[] = [
   },
 ];
 
+const detailsHeaders: GridHeader[] = [
+  {
+    title: "Sr. No.",
+    class: "text-center",
+  },
+  {
+    title: "Login Time",
+    class: "text-center",
+  },
+  {
+    title: "Logout Time",
+    class: "text-center",
+  },
+  {
+    title: "Description",
+    class: "text-center",
+  }
+];
+
 const LoginLogoutLogs = () => {
   const permissionCompute: any = useRef<any>();
   const pageCount = useRef<number>(0);
   const rowCompute = useRef<GridRow[]>([]);
+  const detailsRowCompute = useRef<GridRow[]>([]);
   const navigate = useNavigate();
   const dispatch: Dispatch<any> = useDispatch();
   const [rows, setRows] = useState<GridRow[]>([]);
+  const [detailsRows, setDetailsRow] = useState<GridRow[]>([]);
   const [ShowLoader, setShowLoader] = useState(false);
   const [totalCount, setTotalCount] = useState(0);
+  const [detailsTotalCount, setDetailsTotalCount] = useState(0);
   const [editData, setEditData] = useState<any>();
   const [showDeleteModal, setDeleteModal] = useState<boolean>(false);
   const [permission, setPermission] = useState<any>();
@@ -70,6 +92,9 @@ const LoginLogoutLogs = () => {
   const userInfoData: any = useSelector<RootState, any>(
     (state: any) => state.userInfoData
   );
+  const openedId = useRef<number>(0);
+  const openedName = useRef<String>("");
+  const openedDate = useRef<String>("");
   const RolePermission: any = useSelector<RootState, reduxState>(
     (state: any) => state.RolePermission
   );
@@ -101,7 +126,6 @@ const LoginLogoutLogs = () => {
         RolePermission?.rolePermission?.menus &&
         RolePermission?.rolePermission?.menus.length > 0
       ) {
-        console.log(RolePermission);
         const data = RolePermission?.rolePermission?.menus.find(
           (item: any) => item.name == "Login Logout Logs"
         );
@@ -143,7 +167,7 @@ const LoginLogoutLogs = () => {
           let columns: GridColumn[] = [];
           columns.push({ value: `${startCount++}` });
           columns.push({ value: res.list[i].username ? res.list[i].username : "N/A" });
-          columns.push({ value: res.list[i].date ? HelperService.getFormatedDateIST(res.list[i].date) : "N/A" });
+          columns.push({ value: res.list[i].date ? HelperService.getFormattedDatebyText(res.list[i].date) : "N/A" });
           columns.push({ value: res.list[i].loginTime ? HelperService.getFormatedIST(res.list[i].loginTime) : "N/A" });
           columns.push({ value: res.list[i].logoutTime ? HelperService.getFormatedIST(res.list[i].logoutTime) : "N/A" });
           columns.push({ value: statusList(res.list[i].currentStatus ? res.list[i].currentStatus : "N/A") });
@@ -177,28 +201,25 @@ const LoginLogoutLogs = () => {
         setShowLoader(false);
         let rows: GridRow[] = [];
         if (page == 1) {
-          setTotalCount(res.count);
+          setDetailsTotalCount(res.count);
         }
         let startCount = (page - 1) * 10 + 1;
         if (page == 1) {
-          setTotalCount(res.count);
+          setDetailsTotalCount(res.count);
         }
 
         for (var i in res.list) {
           let columns: GridColumn[] = [];
           columns.push({ value: `${startCount++}` });
-          columns.push({ value: res.list[i].username ? res.list[i].username : "N/A" });
-          columns.push({ value: res.list[i].date ? HelperService.getFormatedDateIST(res.list[i].date) : "N/A" });
           columns.push({ value: res.list[i].loginTime ? HelperService.getFormatedIST(res.list[i].loginTime) : "N/A" });
           columns.push({ value: res.list[i].logoutTime ? HelperService.getFormatedIST(res.list[i].logoutTime) : "N/A" });
-          columns.push({ value: statusList(res.list[i].currentStatus ? res.list[i].currentStatus : "N/A") });
+          columns.push({ value: res.list[i].description ? res.list[i].description : "N/A" });
           columns.push({ value: actionList(res.list[i]), type: "COMPONENT" });
-          rowCompute.current.push({ data: columns });
+          detailsRowCompute.current.push({ data: columns });
           rows.push({ data: columns });
         }
-        rowCompute.current = rows;
-        setRows(rowCompute.current);
-        setShowModal(true);
+        detailsRowCompute.current = rows;
+        setDetailsRow(detailsRowCompute.current);
       })
       .catch((e) => {
         setShowLoader(false);
@@ -208,7 +229,6 @@ const LoginLogoutLogs = () => {
   const onEdit = (val: any) => {
     dispatch(setDataInRedux({ type: ADD_ROLE_DATA, value: val }));
     setTimeout(() => {
-      console.log("role data --> ", val);
       navigate("/add-role");
     }, 100);
   };
@@ -239,10 +259,14 @@ const LoginLogoutLogs = () => {
 
   const openModal = (data: any) => {
     console.log(data)
-    getLoginLogoutLogsDetails(1, data.id);
+    openedId.current = data.id
+    openedName.current = data.username
+    openedDate.current = data.date
+    setShowModal(true);
   };
 
   const handleClose = () => {
+    setDetailsRow([]);
     setShowModal(false);
   };
 
@@ -307,7 +331,9 @@ const LoginLogoutLogs = () => {
 
   const onDetailsPageChange = (data: any, value: string, startDate: any, endDate: any) => {
     setDetailsPage(data)
-    getLoginLogoutLogsDetails(data, 2, value, startDate, endDate)
+    console.log("date------------>", data)
+    console.log("id ----------->", data.id)
+    getLoginLogoutLogsDetails(data, openedId.current, value, startDate, endDate)
   }
 
   return (
@@ -335,7 +361,8 @@ const LoginLogoutLogs = () => {
               ShowLoader={ShowLoader}
               showSearch={true}
               count={totalCount}
-              onPageChange={onDetailsPageChange}
+              showDateFilter={true}
+              onPageChange={onPageChange}
               errorMessage={"No Customer Group Found"}
             />
           )}
@@ -351,18 +378,18 @@ const LoginLogoutLogs = () => {
         centered
       >
         <Modal.Header closeButton>
-          <Modal.Title>Day History</Modal.Title>
+          <Modal.Title>Day History - {openedName.current }({HelperService.getFormattedDatebyText(openedDate.current)})</Modal.Title>
         </Modal.Header>
         <Modal.Body>
           <div>
             {permission && permission?.isRead && (
               <Grid
-                rows={rows}
-                headers={headers}
+                rows={detailsRows}
+                headers={detailsHeaders}
                 ShowLoader={ShowLoader}
                 showSearch={false}
-                count={totalCount}
-                onPageChange={onPageChange}
+                count={detailsTotalCount}
+                onPageChange={onDetailsPageChange}
                 errorMessage={"No Customer Group Found"}
               />
             )}

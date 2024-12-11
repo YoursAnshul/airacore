@@ -21,16 +21,15 @@ public interface LoginLogoutLogsRepository extends JpaRepository<LoginLogoutLogs
 
 	LoginLogoutLogs findTopByUserIdOrderByCreatedAtDesc(Long userId);
 
-	@Query("SELECT new com.aircore.response.LoginLogoutLogsResponse (" +
-		       "l.id, concat(u.firstName, ' ', u.lastName), l.currentStatus, l.loginTime, l.logoutTime, l.date, l.loginType) " +
-		       "FROM LoginLogoutLogs l " +
-		       "JOIN User u ON l.userId = u.id " +
-		       "WHERE (:userId IS NULL OR l.userId = :userId) " +
-		       "AND (:loginType IS NULL OR l.loginType = :loginType) " +
-		       "AND (:dateFrom IS NULL OR l.date >= :dateFrom) " +
-		       "AND (:dateTo IS NULL OR l.date <= :dateTo)")
+	@Query("SELECT new com.aircore.response.LoginLogoutLogsResponse ("
+			+ "l.id, concat(u.firstName, ' ', u.lastName), l.currentStatus, l.loginTime, l.logoutTime, l.date, l.loginType) "
+			+ "FROM LoginLogoutLogs l " + "JOIN User u ON l.userId = u.id "
+			+ "WHERE (:userId IS NULL OR l.userId = :userId) " + "AND (:loginType IS NULL OR l.loginType = :loginType) "
+			+ "AND (:dateFrom IS NULL OR l.date >= :dateFrom) " + "AND (:dateTo IS NULL OR l.date <= :dateTo) "
+			+ "AND (:combinationOfFirstNameAndLastName IS NULL OR CONCAT(u.firstName, ' ', u.lastName) LIKE %:combinationOfFirstNameAndLastName%) "
+			+ "ORDER BY l.date DESC")
 	Page<LoginLogoutLogsResponse> findFilteredLogs(@Param("userId") Long userId,
 			@Param("loginType") LoginType loginType, @Param("dateFrom") Date dateFrom, @Param("dateTo") Date dateTo,
-			Pageable pageable);
+			@Param("combinationOfFirstNameAndLastName") String combinationOfFirstNameAndLastName, Pageable pageable);
 
 }

@@ -306,7 +306,7 @@ getFormattedDatebyTextAndTime(dt: any) {
   },
 
   getFormatedDateIST(dt: any) {
-    return momentTime(dt).tz('Asia/Kolkata').format("MM/DD/YYYY");
+    return momentTime(dt).tz('Asia/Kolkata').format("DD/MM/YYYY");
   },
 
   getFormatedIST(dt: any) {
