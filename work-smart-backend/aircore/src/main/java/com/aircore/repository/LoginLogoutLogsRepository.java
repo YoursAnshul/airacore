@@ -19,7 +19,9 @@ public interface LoginLogoutLogsRepository extends JpaRepository<LoginLogoutLogs
 
 	Optional<LoginLogoutLogs> findByUserIdAndDate(Long userId, Date date);
 
-	LoginLogoutLogs findTopByUserIdOrderByCreatedAtDesc(Long userId);
+	@Query("SELECT l FROM LoginLogoutLogs l " + "WHERE l.userId = :userId " + "AND DATE(l.createdAt) = CURRENT_DATE "
+			+ "ORDER BY l.createdAt DESC")
+	LoginLogoutLogs findTopByUserIdAndCreatedAtToday(@Param("userId") Long userId);
 
 	@Query("SELECT new com.aircore.response.LoginLogoutLogsResponse ("
 			+ "l.id, concat(u.firstName, ' ', u.lastName), l.currentStatus, l.loginTime, l.logoutTime, l.date, l.loginType, l.description ) "

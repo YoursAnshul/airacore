@@ -85,7 +85,7 @@ public class LoginLogoutLogsService {
 	}
 	
 	public LoginStatusResponse getUserLoginStatus(Long userId) {
-	    LoginLogoutLogs lastLog = loginLogoutLogsRepository.findTopByUserIdOrderByCreatedAtDesc(userId);
+	    LoginLogoutLogs lastLog = loginLogoutLogsRepository.findTopByUserIdAndCreatedAtToday(userId);
 	    if (lastLog == null || lastLog.getLogoutTime() != null) {
 	        return new LoginStatusResponse(false, null); 
 	    }
