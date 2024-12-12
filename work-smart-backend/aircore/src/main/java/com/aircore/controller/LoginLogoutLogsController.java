@@ -17,6 +17,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.aircore.entity.ValidateIP;
+import com.aircore.repository.IpRepository;
 import com.aircore.response.AppResponse;
 import com.aircore.response.LoginLogoutLogsDetailsResponse;
 import com.aircore.response.LoginLogoutLogsResponse;
@@ -25,6 +27,10 @@ import com.aircore.response.PageableResponse;
 import com.aircore.service.LoginLogoutLogsService;
 import com.aircore.utility.Constant;
 import com.aircore.utility.Enumeration.LoginType;
+import com.aircore.utility.Enumeration.Status;
+import com.aircore.utility.Utility;
+
+import jakarta.servlet.http.HttpServletRequest;
 
 @RestController
 @RequestMapping("/api/login-logout-logs")
@@ -32,10 +38,31 @@ public class LoginLogoutLogsController {
 
 	@Autowired
 	private LoginLogoutLogsService loginLogoutLogsService;
+	
+	@Autowired
+	private IpRepository  ipRepository;
 
 	@PostMapping("/login/{userId}")
-	public ResponseEntity<AppResponse<?>> login(@PathVariable Long userId, @RequestParam String loginType) {
+	public ResponseEntity<AppResponse<?>> login(@PathVariable Long userId, @RequestParam String loginType,
+			HttpServletRequest req) {
 		try {
+			String userIpAddress = Utility.getClientIpAddress(req);
+			System.out.println(userIpAddress);
+			String[] userIpAddresses = userIpAddress.split(",\\s*");
+
+			boolean validIpAddress = false;
+			for (String ipAddress : userIpAddresses) {
+				ValidateIP validateIP = ipRepository.findByIpAddressAndStatus(ipAddress.trim(), Status.ACTIVE);
+				if (validateIP != null) {
+					validIpAddress = true;
+					break;
+				}
+			}
+
+			if (!validIpAddress) {
+				throw new Exception("Invalid IP Address!!!");
+			}
+			
 			loginLogoutLogsService.login(userId, loginType);
 			AppResponse<?> appResponse = new AppResponse<>(true, "Login successful", 201, null, null);
 			return new ResponseEntity<>(appResponse, HttpStatus.CREATED);
@@ -46,8 +73,27 @@ public class LoginLogoutLogsController {
 	}
 
 	@PostMapping("/logout/{logId}")
-	public ResponseEntity<AppResponse<?>> logout(@PathVariable Long logId, @RequestBody Map<String, String> requestBody) {
+	public ResponseEntity<AppResponse<?>> logout(@PathVariable Long logId, @RequestBody Map<String, String> requestBody,
+			HttpServletRequest req) {
 	    try {
+			String userIpAddress = Utility.getClientIpAddress(req);
+			System.out.println(userIpAddress);
+			String[] userIpAddresses = userIpAddress.split(",\\s*");
+
+			boolean validIpAddress = false;
+			for (String ipAddress : userIpAddresses) {
+				System.out.println(ipAddress);
+				ValidateIP validateIP = ipRepository.findByIpAddressAndStatus(ipAddress.trim(), Status.ACTIVE);
+				if (validateIP != null) {
+					validIpAddress = true;
+					break;
+				}
+			}
+
+			if (!validIpAddress) {
+				throw new Exception("Invalid IP Address!!!");
+			}
+			
 	        String description = requestBody.get("description");
 	        if (description == null || description.trim().isEmpty()) {
 	            throw new IllegalArgumentException("Description is mandatory");
