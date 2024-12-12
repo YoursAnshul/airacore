@@ -41,7 +41,7 @@ const headers: GridHeader[] = [
 ];
 
 const AdminRoleManagement = () => {
-  const permissionCompute: any = useRef<any>();
+  const permissionCompute: any = useRef<any>(null);
   const pageCount = useRef<number>(0);
   const rowCompute = useRef<GridRow[]>([]);
   const navigate = useNavigate();

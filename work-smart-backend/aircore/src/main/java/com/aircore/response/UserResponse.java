@@ -9,4 +9,5 @@ public interface UserResponse {
     String getRole();
     String getCreatedDate();
     String getStatus();
+    String getRoleName();
 }

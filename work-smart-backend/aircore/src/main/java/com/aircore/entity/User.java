@@ -47,7 +47,7 @@ public class User {
     private String password;
 
     @Column(nullable = false)
-    private String role = "USER";
+    private Long role;
     
     @Enumerated(EnumType.STRING)
     private Status status;

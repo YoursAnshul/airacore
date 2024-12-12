@@ -287,6 +287,8 @@ public class UserService {
         existingUser.getRoles().clear();
         existingUser.getRoles().add(role);
 
+        existingUser.setRole(role.getId());
+        System.out.println(existingUser.getRoles());
         userRepository.save(existingUser);
     }
     

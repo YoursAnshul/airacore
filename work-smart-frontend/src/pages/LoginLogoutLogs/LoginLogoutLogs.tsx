@@ -1,6 +1,6 @@
-import { useEffect, useRef, useState,useCallback } from "react";
+import React, { useEffect, useRef, useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
-import {  useSelector } from "react-redux";
+import { useSelector } from "react-redux";
 import PageTitle from "../../components/Common/PageTitle";
 import Grid, {
   GridColumn,
@@ -14,7 +14,7 @@ import { RootState } from "../../config/Store";
 import { reduxState } from "../../reducer/CommonReducer";
 import HelperService from "../../Services/HelperService";
 import { Card } from "react-bootstrap";
-import { FaRegEye } from "react-icons/fa";
+import { FaInfoCircle, FaRegEye } from "react-icons/fa";
 import Modal from "react-bootstrap/Modal";
 
 const headers: GridHeader[] = [
@@ -40,6 +40,10 @@ const headers: GridHeader[] = [
   },
   {
     title: "Status",
+    class: "text-center",
+  },
+  {
+    title: "Summary",
     class: "text-center",
   },
   {
@@ -71,7 +75,7 @@ const detailsHeaders: GridHeader[] = [
 ];
 
 const LoginLogoutLogs = () => {
-  const permissionCompute: any = useRef<any>();
+  const permissionCompute: any = useRef<any>(null);
   const pageCount = useRef<number>(0);
   const rowCompute = useRef<GridRow[]>([]);
   const detailsRowCompute = useRef<GridRow[]>([]);
@@ -91,11 +95,14 @@ const LoginLogoutLogs = () => {
   const openedId = useRef<number>(0);
   const openedName = useRef<String>("");
   const openedDate = useRef<String>("");
+  const openedDescription = useRef<String>("");
+
   const RolePermission: any = useSelector<RootState, reduxState>(
     (state: any) => state.RolePermission
   );
   const [page, setPage] = useState(1);
   const [show, setShowModal] = useState(false);
+  const [showSummaryModal, setShowSummaryModal] = useState(false);
 
   useEffect(() => {
     if (
@@ -105,9 +112,9 @@ const LoginLogoutLogs = () => {
     ) {
       setloginUserId(userInfoData.user_info.id);
       console.log("isloginUserId------------>", isloginUserId);
-      
+
     }
-  }, [isloginUserId,userInfoData]);
+  }, [isloginUserId, userInfoData]);
 
   useEffect(() => {
     if (
@@ -130,7 +137,26 @@ const LoginLogoutLogs = () => {
         }
       }
     }
-  }, [RolePermission,navigate]);
+  }, [RolePermission, navigate]);
+
+  const actionListSummary = useCallback(
+    (data: any) => {
+      return (
+        <div className="action-btns">
+          <button
+            onClick={() => openSummaryModal(data)}
+            className="btn btn-eye"
+            data-toggle="tooltip"
+            data-placement="top"
+            title="View"
+          >
+            <FaInfoCircle className="icon" />
+          </button>
+        </div>
+      );
+    },
+    []
+  );
 
   const actionList = useCallback(
     (data: any) => {
@@ -175,6 +201,7 @@ const LoginLogoutLogs = () => {
             columns.push({ value: res.list[i].loginTime ? HelperService.getFormatedIST(res.list[i].loginTime) : "N/A" });
             columns.push({ value: res.list[i].logoutTime ? HelperService.getFormatedIST(res.list[i].logoutTime) : "N/A" });
             columns.push({ value: statusList(res.list[i].currentStatus ? res.list[i].currentStatus : "N/A") });
+            columns.push({ value: actionListSummary(res.list[i]), type: "COMPONENT" });
             columns.push({ value: actionList(res.list[i]), type: "COMPONENT" });
             rowCompute.current.push({ data: columns });
             rows.push({ data: columns });
@@ -186,7 +213,7 @@ const LoginLogoutLogs = () => {
           setShowLoader(false);
         });
     },
-    [actionList] 
+    [actionList]
   );
 
   useEffect(() => {
@@ -223,7 +250,16 @@ const LoginLogoutLogs = () => {
           columns.push({ value: `${startCount++}` });
           columns.push({ value: res.list[i].loginTime ? HelperService.getFormatedIST(res.list[i].loginTime) : "N/A" });
           columns.push({ value: res.list[i].logoutTime ? HelperService.getFormatedIST(res.list[i].logoutTime) : "N/A" });
-          columns.push({ value: res.list[i].description ? res.list[i].description : "N/A" });
+          columns.push({
+            value: res.list[i].description
+              ? res.list[i].description.split("\n").map((line: any, index: any) => (
+                <React.Fragment key={index}>
+                  {line}
+                  <br />
+                </React.Fragment>
+              ))
+              : "N/A",
+          });
           columns.push({ value: actionList(res.list[i]), type: "COMPONENT" });
           detailsRowCompute.current.push({ data: columns });
           rows.push({ data: columns });
@@ -264,11 +300,23 @@ const LoginLogoutLogs = () => {
     setShowModal(true);
   };
 
+  const openSummaryModal = (data: any) => {
+    console.log(data)
+    openedId.current = data.id
+    openedName.current = data.username
+    openedDate.current = data.date
+    openedDescription.current = data.description
+    setShowSummaryModal(true);
+  };
+
   const handleClose = () => {
     setDetailsRow([]);
     setShowModal(false);
   };
 
+  const handleSummaryClose = () => {
+    setShowSummaryModal(false);
+  };
 
 
   const statusList = (status: string) => {
@@ -336,6 +384,50 @@ const LoginLogoutLogs = () => {
 
       <Modal
         size="lg"
+        show={showSummaryModal}
+        onHide={handleSummaryClose}
+        backdrop="static"
+        keyboard={false}
+        centered
+      >
+        <Modal.Header closeButton>
+          <Modal.Title>Task Summary - {openedName.current}({HelperService.getFormattedDatebyText(openedDate.current)})</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          <div
+            style={{
+              maxHeight: "60vh", 
+              overflowY: "auto", 
+              padding: "10px",
+            }}
+          >
+            {openedDescription && openedDescription.current
+              ? openedDescription.current
+                .split("@@@@@")
+                .map((day, dayIndex) => (
+                  <div key={dayIndex} style={{ marginBottom: "1em" }}>
+                    <strong>Logout {dayIndex + 1}</strong>
+                    <div>
+                      {day
+                        .split("\n")
+                        .map((line, lineIndex) => (
+                          <React.Fragment key={lineIndex}>
+                            {line}
+                            <br />
+                          </React.Fragment>
+                        ))}
+                      <hr />
+                    </div>
+                  </div>
+                ))
+              : "No description available"}
+          </div>
+        </Modal.Body>
+
+      </Modal>
+
+      <Modal
+        size="lg"
         show={show}
         onHide={handleClose}
         backdrop="static"
@@ -343,7 +435,7 @@ const LoginLogoutLogs = () => {
         centered
       >
         <Modal.Header closeButton>
-          <Modal.Title>Day History - {openedName.current }({HelperService.getFormattedDatebyText(openedDate.current)})</Modal.Title>
+          <Modal.Title>Day History - {openedName.current}({HelperService.getFormattedDatebyText(openedDate.current)})</Modal.Title>
         </Modal.Header>
         <Modal.Body>
           <div>

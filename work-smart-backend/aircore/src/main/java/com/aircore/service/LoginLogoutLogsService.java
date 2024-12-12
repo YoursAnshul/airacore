@@ -63,7 +63,7 @@ public class LoginLogoutLogsService {
 			LoginLogoutLogs log = existingLog.get();
 			log.setLogoutTime(currentDate);
 			if(log.getDescription() != null) {
-				log.setDescription(log.getDescription() + " " + description);
+				log.setDescription(log.getDescription() + "@@@@@" + description);
 			} else {
 				log.setDescription(description);
 			}

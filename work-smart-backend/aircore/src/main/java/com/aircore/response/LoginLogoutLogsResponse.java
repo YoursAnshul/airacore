@@ -18,8 +18,9 @@ public class LoginLogoutLogsResponse {
     private Date logoutTime;
     private Date date;
     private LoginType loginType;
-
-    public LoginLogoutLogsResponse(Long id, String username, CurrentStatus currentStatus, Date loginTime, Date logoutTime, Date date, LoginType loginType) {
+    private String description;
+    
+    public LoginLogoutLogsResponse(Long id, String username, CurrentStatus currentStatus, Date loginTime, Date logoutTime, Date date, LoginType loginType, String description) {
         this.id = id;
         this.username = username;
         this.currentStatus = currentStatus;
@@ -27,6 +28,7 @@ public class LoginLogoutLogsResponse {
         this.logoutTime = logoutTime;
         this.date = date;
         this.loginType = loginType;
+        this.description = description;
     }
 
 }

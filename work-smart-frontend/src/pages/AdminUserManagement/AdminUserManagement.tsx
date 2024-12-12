@@ -89,7 +89,7 @@ const AdminUserManagement = () => {
   const [showPassword, setShowPassword] = useState<boolean>(true);
   const [passwordModel, setPasswordModel] = useState<boolean>(false);
   const [permission, setPermission] = useState<any>();
-  const permissionCompute: any = useRef<any>();
+  const permissionCompute: any = useRef<any>(null);
   const [isloginUserId, setloginUserId] = useState<any>();
   const [loginUserAccess, setLoginUserAccess] = useState<any>();
   const [isAllRoleList, setAllRoleList] = useState<any>();
@@ -160,7 +160,7 @@ const AdminUserManagement = () => {
       .then((res: any) => {
         let temp: any[] = [];
         for (var i in res) {
-          temp.push({ id: res[i].name, value: res[i].name });
+          temp.push({ id: res[i].id, value: res[i].name });
         }
 
         setAllRoleList(temp);
@@ -595,36 +595,37 @@ const AdminUserManagement = () => {
             )}
 
             <Col lg={12}>
-              {
-                <Controller
-                  control={control}
-                  name="role"
-                  rules={{
-                    required: false,
-                  }}
-                  render={({ field }) => (
-                    <Form.Group className="mb-1 mt-3">
-                      <Form.Label>Role Options</Form.Label>
-                      <ShancoSelect
-                        onChange={(e: any) => {
-                          field.onChange(e.value);
-                        }}
-                        options={isAllRoleList}
-                        // selected={watch().role}
-                        selected={watchAllFields.role}
-
-                      // isDisable={!subCategoryOptions.length}
-                      />
-                    </Form.Group>
-                  )}
-                />
-              }
+              <Controller
+                control={control}
+                name="role"
+                rules={{
+                  required: true, // Update to `true` if the role is required
+                }}
+                render={({ field }) => (
+                  <Form.Group className="mb-1 mt-3">
+                    <Form.Label>Role Options</Form.Label>
+                    <Form.Control
+                      as="select"
+                      {...field}
+                      className="form-select"
+                    >
+                      <option value="">Select Role</option> {/* Default placeholder */}
+                      {isAllRoleList.map((role: { id: number; value: string }) => (
+                        <option key={role.id} value={role.id}>
+                          {role.value}
+                        </option>
+                      ))}
+                    </Form.Control>
+                  </Form.Group>
+                )}
+              />
               {errors.role && (
                 <div className="login-error mt-2">
                   <Label title={"Please Select Role."} modeError={true} />
                 </div>
               )}
             </Col>
+
 
             <Button
               id="add_country"

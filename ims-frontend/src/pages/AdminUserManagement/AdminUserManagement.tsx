@@ -89,7 +89,7 @@ const AdminUserManagement = () => {
   const [showPassword, setShowPassword] = useState<boolean>(true);
   const [passwordModel, setPasswordModel] = useState<boolean>(false);
   const [permission, setPermission] = useState<any>();
-  const permissionCompute: any = useRef<any>();
+  const permissionCompute: any = useRef<any>(null);
   const [isloginUserId, setloginUserId] = useState<any>();
   const [loginUserAccess, setLoginUserAccess] = useState<any>();
   const [isAllRoleList, setAllRoleList] = useState<any>();

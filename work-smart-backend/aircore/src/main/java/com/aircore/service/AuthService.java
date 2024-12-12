@@ -41,13 +41,13 @@ public class AuthService {
 		user.setStatus(Status.ACTIVE);
 		user.setCreatedDate(new Date());
 		user.setPassword(passwordEncoder.encode(user.getPassword()));
-		if (user.getRole() == null || user.getRole().isEmpty()) {
+		if (user.getRole() == null) {
 			Role defaultRole = roleRepository.findByName("USER")
 					.orElseThrow(() -> new RuntimeException("Default role 'USER' not found"));
 			user.getRoles().add(defaultRole);
 		} else {
-			Role defaultRole = roleRepository.findByName(user.getRole())
-					.orElseThrow(() -> new RuntimeException("Default role 'USER' not found"));
+			Role defaultRole = roleRepository.findById(user.getRole())
+					.orElseThrow(() -> new RuntimeException("Role not found"));
 			user.getRoles().add(defaultRole);
 		}
 

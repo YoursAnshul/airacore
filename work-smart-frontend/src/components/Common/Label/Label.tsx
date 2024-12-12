@@ -1,5 +1,4 @@
 import React from "react";
-import PropTypes from "prop-types";
 
 import "./Label.css";
 
@@ -31,12 +30,7 @@ export const Label = (props: PropData) => {
   );
 };
 
-Label.propTypes = {
-  title: PropTypes.string,
-  showStar: PropTypes.bool,
-  modeError: PropTypes.bool,
-  type: PropTypes.string,
-};
+
 
 Label.defaultProps = {
   title: "",
