@@ -60,8 +60,9 @@ public class LoginLogoutLogsController {
 			}
 
 			if (!validIpAddress) {
-				throw new Exception("Invalid IP Address!!!");
-			}
+	            AppResponse<?> appResponse = new AppResponse<>(false, "Invalid IP Address!!!", 400, null, null);
+	            return new ResponseEntity<>(appResponse, HttpStatus.BAD_REQUEST); 
+	        }
 			
 			loginLogoutLogsService.login(userId, loginType);
 			AppResponse<?> appResponse = new AppResponse<>(true, "Login successful", 201, null, null);
@@ -91,8 +92,9 @@ public class LoginLogoutLogsController {
 			}
 
 			if (!validIpAddress) {
-				throw new Exception("Invalid IP Address!!!");
-			}
+	            AppResponse<?> appResponse = new AppResponse<>(false, "Invalid IP Address!!!", 400, null, null);
+	            return new ResponseEntity<>(appResponse, HttpStatus.BAD_REQUEST); 
+	        }
 			
 	        String description = requestBody.get("description");
 	        if (description == null || description.trim().isEmpty()) {
