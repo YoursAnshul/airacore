@@ -1,9 +1,13 @@
 import { useEffect, useRef, useState } from "react";
-import { Row, Col, Card, Button, Dropdown, Modal, Form } from "react-bootstrap";
+import { Row, Col, Card, Button, Dropdown, Modal, Form, Offcanvas } from "react-bootstrap";
 import { useSelector } from "react-redux";
 import { RootState } from "../../config/Store";
 import WebService from "../../Services/WebService";
 import { toast } from "react-toastify";
+import { useForm } from "react-hook-form";
+import { Label } from "../../components/Common/Label/Label";
+import HelperService from "../../Services/HelperService";
+import { Controller } from "react-bootstrap-icons";
 
 const Dashboard = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -12,6 +16,21 @@ const Dashboard = () => {
   const loggedId = useRef<number>(0);
   const [isLogoutPopupVisible, setIsLogoutPopupVisible] = useState(false);
   const [logoutDescription, setLogoutDescription] = useState("");
+  const [show, setShow] = useState(false);
+  const {
+    handleSubmit,
+    formState: { errors, isValid },
+    control,
+    watch,
+    getValues,
+    register,
+    reset,
+    setValue
+  } = useForm<any>();
+
+  const handleCloseAddUser = () => {
+    setShow(false);
+  };
 
   const getUserData = (id: any) => {
     if (id) {
@@ -66,34 +85,38 @@ const Dashboard = () => {
   };
 
   const logout = () => {
-      WebService.getAPI({ action: `api/login-logout-logs/status/${userInfoData?.user_info?.id}`, id: "status-check" })
-        .then((response: any) => {
-          if (response?.success) {
-            const { loggedIn, loginId } = response?.data;
-            setIsLoggedIn(loggedIn);
-            if (loggedIn && loginId) {
-              WebService.postAPI({
-                action: `api/login-logout-logs/logout/${loginId}`,
-                id: "logout-btn",
-                body: { description: logoutDescription }
+    WebService.getAPI({ action: `api/login-logout-logs/status/${userInfoData?.user_info?.id}`, id: "status-check" })
+      .then((response: any) => {
+        if (response?.success) {
+          const { loggedIn, loginId } = response?.data;
+          setIsLoggedIn(loggedIn);
+          if (loggedIn && loginId) {
+            WebService.postAPI({
+              action: `api/login-logout-logs/logout/${loginId}`,
+              id: "logout-btn",
+              body: { description: logoutDescription }
+            })
+              .then((response: any) => {
+                if (response?.success) {
+                  setIsLoggedIn(false);
+                  toast.success("Logged out successfully");
+                  setIsLogoutPopupVisible(false);
+                }
               })
-                .then((response: any) => {
-                  if (response?.success) {
-                    setIsLoggedIn(false);
-                    toast.success("Logged out successfully");
-                    setIsLogoutPopupVisible(false);
-                  }
-                })
-                .catch((error: any) => {
-                  console.error("Logout failed", error);
-                });
-            }
+              .catch((error: any) => {
+                console.error("Logout failed", error);
+              });
           }
-        })
-        .catch((error: any) => {
-          console.error("Error fetching user data", error);
-        });
+        }
+      })
+      .catch((error: any) => {
+        console.error("Error fetching user data", error);
+      });
   };
+
+  const requestLeave = (data: any) => {
+    console.log(data);
+  }
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -127,6 +150,16 @@ const Dashboard = () => {
     return { hours, minutes, seconds, ampm: ampm ? ampm[0] : "" };
   };
 
+  const handleDateChange = (event: any, fieldName: any) => {
+    const dateValue = event.target.value;
+    if (dateValue) {
+      const [year, month, day] = dateValue.split("-");
+      const formattedDate = `${day}/${month}/${year}`;
+      setValue(fieldName, formattedDate);
+    }
+  };
+
+
   const { hours, minutes, seconds, ampm } = formatTime();
 
   return (
@@ -136,7 +169,7 @@ const Dashboard = () => {
       </div>
 
       <Row className="mb-4">
-        <Col lg={12}>
+        <Col lg={6}>
           <Card
             className="p-4"
             style={{
@@ -171,12 +204,12 @@ const Dashboard = () => {
                 </p>
                 <div
                   className="d-flex align-items-baseline"
-                  style={{ fontSize: "3rem", fontWeight: "bold" }}
+                  style={{ fontSize: "1.5rem", fontWeight: "bold" }}
                 >
                   <span>{hours}</span>
                   <span>:</span>
                   <span>{minutes}</span>
-                  <span style={{ fontSize: "1.5rem", marginLeft: "0px" }}>
+                  <span style={{ fontSize: "0.8rem", marginLeft: "0px" }}>
                     <span>:</span>{seconds}
                   </span>
                   <span
@@ -198,6 +231,8 @@ const Dashboard = () => {
                     color: isLoggedIn ? "#d9534f" : "#5cb85c",
                     borderRadius: "5px",
                     fontWeight: "500",
+                    fontSize: "12px",
+                    textWrap: "nowrap"
                   }}
                 >
                   {isLoggedIn ? "Logout" : "Web Clock-In"}
@@ -230,6 +265,97 @@ const Dashboard = () => {
             </div>
           </Card>
         </Col>
+
+        <Col lg={6}>
+          <Card
+            className="p-4"
+            style={{
+              backgroundColor: "#d0c4a1",
+              color: "#000",
+              borderRadius: "10px",
+            }}
+          >
+            <div className="d-flex justify-content-between align-items-center">
+              <div>
+                <h5
+                  className="mb-3"
+                  style={{ fontSize: "1.1rem", fontWeight: 600, color: "white" }}
+                >
+                  Leave Balances
+                </h5>
+                <div className="d-flex gap-4 align-items-center">
+                  {/* Unpaid Leave */}
+                  <div style={{ textAlign: "center" }}>
+                    <div
+                      style={{
+                        width: "60px",
+                        height: "60px",
+                        border: "3px solid #a5d8ff",
+                        borderRadius: "50%",
+                        display: "flex",
+                        justifyContent: "center",
+                        alignItems: "center",
+                        margin: "auto",
+                      }}
+                    >
+                      <span style={{ fontSize: "1.5rem", fontWeight: "bold" }}>∞</span>
+                    </div>
+                    <p className="mt-2 mb-0" style={{ fontSize: "0.9rem", color: "white" }}>UNPAID LEAVE</p>
+                  </div>
+
+                  {/* Privilege Leave */}
+                  <div style={{ textAlign: "center" }}>
+                    <div
+                      style={{
+                        width: "60px",
+                        height: "60px",
+                        border: "3px solid #a5d8ff",
+                        borderRadius: "50%",
+                        display: "flex",
+                        justifyContent: "center",
+                        alignItems: "center",
+                        margin: "auto",
+                      }}
+                    >
+                      <span style={{ fontSize: "1rem", fontWeight: "bold" }}>0</span>
+                    </div>
+                    <p className="mt-2 mb-0" style={{ fontSize: "0.9rem", color: "white" }}>PRIVILEGE LEAVE</p>
+                  </div>
+                </div>
+              </div>
+
+              <div style={{ textAlign: "right" }}>
+                <a
+                  href="#request-leave"
+                  className="mb-2"
+                  style={{
+                    display: "inline-block",
+                    color: "white",
+                    fontWeight: "500",
+                    textDecoration: "none",
+                    marginBottom: "10px",
+                  }}
+                  onClick={() => setShow(true)}
+                >
+                  Request Leave
+                </a>
+                <br />
+                <a
+                  href="#view-balances"
+                  style={{
+                    display: "inline-block",
+                    color: "white",
+                    fontWeight: "500",
+                    textDecoration: "none",
+                  }}
+                  onClick={() => console.log("View All Balances")}
+                >
+                  View All Balances
+                </a>
+              </div>
+            </div>
+          </Card>
+        </Col>
       </Row>
 
       <Modal show={isLogoutPopupVisible} onHide={() => setIsLogoutPopupVisible(false)}>
@@ -258,6 +384,96 @@ const Dashboard = () => {
           </Button>
         </Modal.Footer>
       </Modal>
+
+      <Offcanvas show={show} onHide={handleCloseAddUser} placement="end">
+        <Offcanvas.Header closeButton>
+          <Offcanvas.Title>Request Leave</Offcanvas.Title>
+        </Offcanvas.Header>
+        <Offcanvas.Body className="form-style d-flex flex-column">
+          <form className="mb-3 flex-grow-1" onSubmit={handleSubmit(requestLeave)}>
+            {/* Date Selection */}
+            <div className="d-flex justify-content-between align-items-center">
+              <div>
+                <label>From</label>
+                <input
+                  type="date"
+                  className="form-control"
+                  onChange={(e) => handleDateChange(e, "fromDate")}
+                />
+              </div>
+              <div>
+                <label>To</label>
+                <input
+                  type="date"
+                  className="form-control"
+                  onChange={(e) => handleDateChange(e, "toDate")}
+                />
+              </div>
+            </div>
+            {errors.fromDate && (
+              <div className="login-error">
+                <Label title={"From date is required"} modeError={true} />
+              </div>
+            )}
+            {errors.toDate && (
+              <div className="login-error">
+                <Label title={"To date is required"} modeError={true} />
+              </div>
+            )}
+
+            {/* Leave Type */}
+            <label className="mt-3">Select type of leave you want to apply</label>
+            <select
+              className="form-control"
+              {...register("leaveType", { required: true })}
+            >
+              <option value="">Select</option>
+              <option value="Sick Leave">Sick Leave</option>
+              <option value="Casual Leave">Casual Leave</option>
+              <option value="Privilege Leave">Privilege Leave</option>
+            </select>
+            {errors.leaveType && (
+              <div className="login-error">
+                <Label title={"Leave type is required"} modeError={true} />
+              </div>
+            )}
+
+            {/* Notes */}
+            <label className="mt-3">Note</label>
+            <textarea
+              className="form-control"
+              placeholder="Type here"
+              rows={3}
+              {...register("note", { required: true })}
+            />
+            {errors.note && (
+              <div className="login-error">
+                <Label title={"Note is required"} modeError={true} />
+              </div>
+            )}
+          </form>
+
+          {/* Buttons at Bottom */}
+          <div className="mt-auto d-flex justify-content-end">
+            <Button
+              variant="secondary"
+              className="me-2"
+              onClick={handleCloseAddUser}
+            >
+              Cancel
+            </Button>
+            <Button
+              type="submit"
+              className="btn-brand-1"
+              style={{ backgroundColor: "#6c63ff", borderColor: "#6c63ff" }}
+            >
+              Request
+            </Button>
+          </div>
+        </Offcanvas.Body>
+      </Offcanvas>
+
+
     </div>
   );
 };

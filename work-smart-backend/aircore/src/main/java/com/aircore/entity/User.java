@@ -54,6 +54,8 @@ public class User {
     
     private Date createdDate;
     
+    private Long totalLeave;
+    
     @ManyToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
     @JoinTable(
         name = "user_roles",
