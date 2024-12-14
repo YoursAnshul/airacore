@@ -8,6 +8,42 @@ import { useForm } from "react-hook-form";
 import { Label } from "../../components/Common/Label/Label";
 import HelperService from "../../Services/HelperService";
 import { Controller } from "react-bootstrap-icons";
+import { reduxState } from "../../reducer/CommonReducer";
+import { useNavigate } from "react-router-dom";
+import Grid, {
+  GridColumn,
+  GridHeader,
+  GridRow,
+} from "../../components/Grid/Grid";
+import { FaRegTrashAlt } from "react-icons/fa";
+import { MdLockReset, MdOutlineModeEditOutline } from "react-icons/md";
+
+const headers: GridHeader[] = [
+  {
+    title: "Sr. No.",
+    class: "text-center",
+  },
+  {
+    title: "Start Date",
+    class: "text-center",
+  },
+  {
+    title: "End Date",
+    class: "text-center",
+  },
+  {
+    title: "Status",
+    class: "text-center",
+  },
+  {
+    title: "Note",
+    class: "text-center",
+  },
+  {
+    title: "Approved By",
+    class: "text-center",
+  }
+];
 
 const Dashboard = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -17,6 +53,19 @@ const Dashboard = () => {
   const [isLogoutPopupVisible, setIsLogoutPopupVisible] = useState(false);
   const [logoutDescription, setLogoutDescription] = useState("");
   const [show, setShow] = useState(false);
+  const [permission, setPermission] = useState<any>();
+  const RolePermission: any = useSelector<RootState, reduxState>(
+    (state: any) => state.RolePermission
+  );
+  const navigate = useNavigate();
+  const permissionCompute: any = useRef<any>(null);
+  const [rows, setRows] = useState<GridRow[]>([]);
+  const [ShowLoader, setShowLoader] = useState(false);
+  const rowCompute = useRef<GridRow[]>([]);
+  const [totalCount, setTotalCount] = useState(0);
+  const [page, setPage] = useState(1);
+  const pageCount = useRef<number>(0);
+
   const {
     handleSubmit,
     formState: { errors, isValid },
@@ -31,6 +80,29 @@ const Dashboard = () => {
   const handleCloseAddUser = () => {
     setShow(false);
   };
+
+  useEffect(() => {
+    if (
+      RolePermission &&
+      RolePermission?.rolePermission &&
+      !HelperService.isEmptyObject(RolePermission?.rolePermission)
+    ) {
+      if (
+        RolePermission?.rolePermission?.menus &&
+        RolePermission?.rolePermission?.menus.length > 0
+      ) {
+        const data = RolePermission?.rolePermission?.menus.find(
+          (item: any) => item.name == "Admin User Management"
+        );
+        if (data && data.isRead) {
+          setPermission(data);
+          permissionCompute.current = data;
+        } else {
+          navigate("/login");
+        }
+      }
+    }
+  }, [RolePermission]);
 
   const getUserData = (id: any) => {
     if (id) {
@@ -115,8 +187,37 @@ const Dashboard = () => {
   };
 
   const requestLeave = (data: any) => {
-    console.log(data);
-  }
+    console.log("Form Data:", data);
+
+    const payload = {
+      fromDate: data.fromDate,
+      toDate: data.toDate,
+      leaveType: data.leaveType,
+      note: data.note,
+    };
+
+    const userId = userInfoData?.user_info?.id;
+
+    if (!userId) {
+      toast.error("User not logged in. Please try again.");
+      return;
+    }
+
+    WebService.postAPI({
+      action: `api/leave-requests/${userId}`,
+      body: payload,
+      id: "request_leave"
+    })
+      .then((res: any) => {
+        setShow(false)
+        toast.success("Leave request submitted successfully");
+        reset({});
+      })
+      .catch((err: any) => {
+      });
+  };
+
+
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -159,6 +260,136 @@ const Dashboard = () => {
     }
   };
 
+  const getCustomers = (
+    page: number,
+    keyword?: string,
+    startDate?: Date,
+    endDate?: Date
+  ) => {
+    pageCount.current = page;
+    setShowLoader(true);
+    WebService.getAPI({
+      action: `api/leave-requests/requests/${page}?keyword=${keyword ? keyword : ""
+        }&type=${"true"}&date_from=${startDate ? startDate : ""}&date_to=${endDate ? endDate : ""
+        }`,
+      body: null,
+    })
+      .then((res: any) => {
+        setShowLoader(false);
+        let rows: GridRow[] = [];
+        if (page == 1) {
+          setTotalCount(res.count);
+        }
+        let startCount = (page - 1) * 10 + 1;
+        if (page == 1) {
+          setTotalCount(res.count);
+        }
+
+        for (var i in res.list) {
+          const fullName = `${res.list[i].firstName ? res.list[i].firstName : ""
+            } ${res.list[i].lastName ? res.list[i].lastName : ""}`.trim();
+          let columns: GridColumn[] = [];
+          // columns.push({ value: `${page - 1}${Number(i) + 1}` });
+          columns.push({ value: `${startCount++}` });
+
+          columns.push({
+            value:
+              res.list[i].startDate	&&
+              HelperService.getFormattedDatebyText(res.list[i].startDate),
+          });
+          columns.push({
+            value:
+              res.list[i].endDate	&&
+              HelperService.getFormattedDatebyText(res.list[i].endDate),
+          });
+          columns.push({
+            value: statusList(
+              res.list[i].leaveStatus	 ? res.list[i].leaveStatus	 : "N/A"
+            ),
+          });
+
+          // columns.push({ value: res.list[i].firstName ? res.list[i].firstName : "N/A" });
+          columns.push({
+            value: res.list[i].description ? res.list[i].description : "N/A",
+          });
+         
+          columns.push({
+            value: actionList(Number(i), "ACTION", res.list[i]),
+            type: "COMPONENT",
+          });
+          rowCompute.current.push({ data: columns });
+          rows.push({ data: columns });
+        }
+        rowCompute.current = rows;
+        setRows(rowCompute.current);
+      })
+      .catch((e) => {
+        setShowLoader(false);
+      });
+  };
+
+  const onEdit = (val: any) => {
+    reset(val);
+    // setEditData(val);
+    // setShowPassword(false);
+    // setShowAddUser(true);
+  };
+
+  const onConfirmDelete = (val: any) => {
+    // setEditData(val);
+    // setDeleteModal(true);
+  };
+
+  const actionList = (value: number, type: string, data: any) => {
+      return (
+        <div className="action-btns">
+          <button
+            type="button"
+            onClick={() => onEdit(data)}
+            className="btn btn-edit"
+            data-toggle="tooltip"
+            data-placement="top"
+            title="Edit"
+          >
+            <MdOutlineModeEditOutline className="icon" />
+          </button>
+  
+          <button
+            type="button"
+            className="btn btn-delete"
+            onClick={() => onConfirmDelete(data)}
+            data-toggle="tooltip"
+            data-placement="top"
+            title="Delete"
+          >
+            <FaRegTrashAlt className="icon" />
+          </button>
+        </div>
+      );
+    };
+
+  const statusList = (status: string) => {
+    if (status === "APPROVED") {
+      return (
+        <span className="badge bg-success-subtle text-success">Approved</span>
+      );
+    } else if (status === "PENDING") {
+      return (
+        <span className="badge bg-warning-subtle text-secondary">Pending</span>
+      );
+    } else {
+      return (
+        <span className="badge bg-secondary-subtle text-secondary">
+          {status}
+        </span>
+      );
+    }
+  };
+
+  const onPageChange = (data: any, value: string, startDate: any, endDate: any) => {
+    setPage(data);
+    getCustomers(data, value, startDate, endDate);
+  };
 
   const { hours, minutes, seconds, ampm } = formatTime();
 
@@ -358,6 +589,21 @@ const Dashboard = () => {
         </Col>
       </Row>
 
+      <Row className="mb-3">
+        {permission && permission?.isRead && (
+          <Grid
+            rows={rows}
+            headers={headers}
+            showDateFilter={true}
+            showSearch={true}
+            ShowLoader={ShowLoader}
+            count={totalCount}
+            onPageChange={onPageChange}
+            errorMessage={"No Admin Found"}
+          />
+        )}
+      </Row>
+
       <Modal show={isLogoutPopupVisible} onHide={() => setIsLogoutPopupVisible(false)}>
         <Modal.Header closeButton>
           <Modal.Title>Logout Confirmation</Modal.Title>
@@ -398,7 +644,8 @@ const Dashboard = () => {
                 <input
                   type="date"
                   className="form-control"
-                  onChange={(e) => handleDateChange(e, "fromDate")}
+                  placeholder="dd/mm/yyyy"
+                  {...register("fromDate", { required: true })}
                 />
               </div>
               <div>
@@ -406,7 +653,8 @@ const Dashboard = () => {
                 <input
                   type="date"
                   className="form-control"
-                  onChange={(e) => handleDateChange(e, "toDate")}
+                  placeholder="dd/mm/yyyy"
+                  {...register("toDate", { required: true })}
                 />
               </div>
             </div>
@@ -428,9 +676,9 @@ const Dashboard = () => {
               {...register("leaveType", { required: true })}
             >
               <option value="">Select</option>
-              <option value="Sick Leave">Sick Leave</option>
-              <option value="Casual Leave">Casual Leave</option>
-              <option value="Privilege Leave">Privilege Leave</option>
+              <option value="SICK_LEAVE">Sick Leave</option>
+              <option value="CASUAL_LEAVE">Casual Leave</option>
+              <option value="PRIVILEGE_LEAVE">Privilege Leave</option>
             </select>
             {errors.leaveType && (
               <div className="login-error">
@@ -466,13 +714,13 @@ const Dashboard = () => {
               type="submit"
               className="btn-brand-1"
               style={{ backgroundColor: "#6c63ff", borderColor: "#6c63ff" }}
+              onClick={handleSubmit(requestLeave)} // Attach handler here if needed
             >
               Request
             </Button>
           </div>
         </Offcanvas.Body>
-      </Offcanvas>
-
+      </Offcanvas>;
 
     </div>
   );

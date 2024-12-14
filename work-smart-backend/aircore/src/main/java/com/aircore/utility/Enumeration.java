@@ -18,4 +18,12 @@ public class Enumeration {
 		LOGIN, LOGOUT
 	}
 	
+	public enum LeaveType {
+		SICK_LEAVE, CASUAL_LEAVE, PRIVILEGE_LEAVE
+	}
+	
+	public enum LeaveStatus {
+		APPROVED, REJECTED, PENDING
+	}
+	
 }
