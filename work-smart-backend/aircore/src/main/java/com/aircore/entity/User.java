@@ -54,7 +54,7 @@ public class User {
     
     private Date createdDate;
     
-    private Long totalLeave;
+    private Double totalLeave;
     
     @ManyToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
     @JoinTable(

@@ -43,6 +43,7 @@ public interface LeaveRequestRepository extends JpaRepository<LeaveRequest, Long
 	        @Param("leaveStatus") LeaveStatus leaveStatus,
 	        Pageable pageable);
 
+
 	
 }
 

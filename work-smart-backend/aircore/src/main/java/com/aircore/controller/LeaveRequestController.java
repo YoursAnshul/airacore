@@ -38,23 +38,30 @@ public class LeaveRequestController {
             @PathVariable("userId") Long userId,
             @RequestBody LeaveRequestDTO leaveRequestDTO) {
 
-        LeaveRequest leaveRequest = leaveRequestService.createLeaveRequest(leaveRequestDTO, userId);
-
-        AppResponse<?> response = new AppResponse<>(
-                true,
-                "Leave request created successfully",
-                leaveRequest.getId()
-        );
-
-        return ResponseEntity.status(HttpStatus.CREATED).body(response);
+    	try {
+            LeaveRequest leaveRequest = leaveRequestService.createLeaveRequest(leaveRequestDTO, userId);
+            AppResponse<?> response = new AppResponse<>(
+                    true,
+                    "Leave request created successfully",
+                    leaveRequest.getId()
+            );
+            return ResponseEntity.status(HttpStatus.CREATED).body(response);
+		} catch (Exception e) {
+	        AppResponse<?> response = new AppResponse<>(
+	                false,
+	                e.getMessage(),
+	                ""
+	        );
+	        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+		}
     }
 
     @GetMapping("/requests/{page}")
     public ResponseEntity<PageableResponse<LeaveRequestResponse>> getFilteredLeaveRequests(
             @PathVariable int page,
             @RequestParam(required = false) String keyword,
-            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
-            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date_from,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date_to,
             @RequestParam(required = false) LeaveType leaveType,
             @RequestParam(required = false) LeaveStatus leaveStatus) {
 
@@ -64,8 +71,8 @@ public class LeaveRequestController {
 
         Page<LeaveRequestResponse> leaveRequestPage = leaveRequestService.getFilteredLeaveRequests(
                 keyword,
-                startDate,
-                endDate,
+                date_from,
+                date_to,
                 leaveType,
                 leaveStatus,
                 PageRequest.of(page, Constant.LIMIT_10)

@@ -2,6 +2,7 @@ package com.aircore.entity;
 
 import java.util.Date;
 
+import com.aircore.utility.Enumeration.AplyType;
 import com.aircore.utility.Enumeration.LeaveStatus;
 import com.aircore.utility.Enumeration.LeaveType;
 
@@ -32,6 +33,7 @@ public class LeaveRequest {
 	private Long approvedBy;
 	private String description;
 	private String rejectReason;
-	
+	@Enumerated(EnumType.STRING)
+	private AplyType applyType;
 	
 }

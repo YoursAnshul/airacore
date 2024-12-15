@@ -11,8 +11,10 @@ import org.springframework.stereotype.Service;
 
 import com.aircore.entity.LoginLogoutLogs;
 import com.aircore.entity.LoginLogoutLogsDetails;
+import com.aircore.entity.User;
 import com.aircore.repository.LoginLogoutLogsDetailsRepository;
 import com.aircore.repository.LoginLogoutLogsRepository;
+import com.aircore.repository.UserRepository;
 import com.aircore.response.LoginLogoutLogsDetailsResponse;
 import com.aircore.response.LoginLogoutLogsResponse;
 import com.aircore.response.LoginStatusResponse;
@@ -27,6 +29,9 @@ public class LoginLogoutLogsService {
 
 	@Autowired
 	private LoginLogoutLogsDetailsRepository loginLogoutLogsDetailsRepository;
+	
+	@Autowired
+	private UserRepository userRepository;
 
 	public void login(Long userId, String loginType) {
 		Date currentDate = new Date();
@@ -86,10 +91,13 @@ public class LoginLogoutLogsService {
 	
 	public LoginStatusResponse getUserLoginStatus(Long userId) {
 	    LoginLogoutLogs lastLog = loginLogoutLogsRepository.findTopByUserIdAndCreatedAtToday(userId);
-	    if (lastLog == null || lastLog.getLogoutTime() != null) {
-	        return new LoginStatusResponse(false, null); 
-	    }
-	    return new LoginStatusResponse(true, lastLog.getId());
+	    User user = userRepository.findById(userId)
+	            .orElseThrow(() -> new RuntimeException("User not found"));
+
+	    boolean isLoggedIn = lastLog != null && lastLog.getLogoutTime() == null;
+	    Long loginId = isLoggedIn ? lastLog.getId() : null;
+
+	    return new LoginStatusResponse(isLoggedIn, loginId, user.getTotalLeave());
 	}
 
 	public Page<LoginLogoutLogsResponse> getFilteredLogs(Long userId, LoginType loginType, LocalDate dateFrom, LocalDate dateTo, String combinationOfFirstNameAndLastName, Pageable pageable) {

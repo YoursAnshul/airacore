@@ -14,4 +14,5 @@ public class LeaveRequestDTO {
     private Date toDate;
     private String leaveType;
     private String note;
+    private String applyFor;
 }

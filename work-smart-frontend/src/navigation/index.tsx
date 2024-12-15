@@ -10,6 +10,7 @@ import ForgotPassword from "../components/Login/ForgotPassword";
 import Otp from "../components/Login/Otp";
 import ResetPassword from "../components/Login/ResetPassword";
 const Dashboard = React.lazy(() => import("../pages/Dashboard/Dashboard"));
+const LeaveRequests = React.lazy(() => import("../pages/Dashboard/LeaveRequests"));
 const LogninLogoutLogs = React.lazy(() => import("../pages/LoginLogoutLogs/LoginLogoutLogs"));
 const UserManagement = React.lazy(() => import("../pages/AdminUserManagement/AdminUserManagement"));
 const RoleManagement = React.lazy(() => import("../pages/AdminRoleManagement/AdminRoleManagement"));
@@ -21,18 +22,12 @@ interface ProtectedRouteProps extends RoutesProps {
   authenticationPath: string;
 };
 
-
-
-
 const Navigation = () => {
   const login: any = useSelector<RootState, UserState>((state: any) => state.userLogin);
   const defaultProtectedRouteProps: Omit<ProtectedRouteProps, "outlet"> = {
     isAuthenticated: localStorage.getItem("token") != null,
     authenticationPath: "/login",
   };
-
-
-
 
   return (
     <>
@@ -51,6 +46,7 @@ const Navigation = () => {
 
           <Route path="/" element={<ProtectedRoute {...defaultProtectedRouteProps} outlet={<Main />} />}>
             <Route path="/dashboard" element={<Suspense fallback={<></>}> <Dashboard /> </Suspense>} />
+            <Route path="/leaves" element={<Suspense fallback={<></>}> <LeaveRequests/> </Suspense>} />
             <Route path="/user-management" element={<Suspense fallback={<></>}> <UserManagement /> </Suspense>} />
             <Route path="/role-management" element={<Suspense fallback={<></>}> <RoleManagement /> </Suspense>} />
             <Route path="/login-logout" element={<Suspense fallback={<></>}> <LogninLogoutLogs /> </Suspense>} />

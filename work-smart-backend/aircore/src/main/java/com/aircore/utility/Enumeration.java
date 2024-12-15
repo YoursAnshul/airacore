@@ -19,11 +19,15 @@ public class Enumeration {
 	}
 	
 	public enum LeaveType {
-		SICK_LEAVE, CASUAL_LEAVE, PRIVILEGE_LEAVE
+		SICK_LEAVE, CASUAL_LEAVE, PRIVILEGE_LEAVE, UNPAID_LEAVE
 	}
 	
 	public enum LeaveStatus {
 		APPROVED, REJECTED, PENDING
+	}
+	
+	public enum AplyType {
+		FIRST_HALF, SECOND_HALF, FULL_DAY
 	}
 	
 }

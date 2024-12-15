@@ -19,6 +19,7 @@ import Grid, {
 } from "../../components/Grid/Grid";
 import { FaRegTrashAlt } from "react-icons/fa";
 import { MdLockReset, MdOutlineModeEditOutline } from "react-icons/md";
+import PageTitle from "../../components/Common/PageTitle";
 
 const headers: GridHeader[] = [
   {
@@ -434,196 +435,25 @@ const Dashboard = () => {
   const { hours, minutes, seconds, ampm } = formatTime();
   return (
     <div className="app-page page-dashboard">
-      <div className="d-flex justify-content-between mb-4 align-items-center">
-        <h1 className="page-heading mb-lg-0 mb-3">Dashboard</h1>
-      </div>
-
-      <Row className="mb-4">
-        <Col lg={6}>
-          <Card
-            className="p-4"
-            style={{
-              backgroundColor: "#74c0fc",
-              color: "#fff",
-              borderRadius: "10px",
-            }}
-          >
-            <div className="d-flex justify-content-between align-items-center">
-              <div>
-                <h5
-                  className="mb-2"
-                  style={{ fontSize: "1.1rem", fontWeight: 500 }}
-                >
-                  Time Today -{" "}
-                  {currentTime.toLocaleDateString("en-US", {
-                    weekday: "long",
-                    year: "numeric",
-                    month: "short",
-                    day: "numeric",
-                  })}
-                </h5>
-                <p
-                  className="mb-1"
-                  style={{
-                    fontSize: "0.9rem",
-                    fontWeight: 400,
-                    paddingTop: "10px",
-                  }}
-                >
-                  CURRENT TIME
-                </p>
-                <div
-                  className="d-flex align-items-baseline"
-                  style={{ fontSize: "1.5rem", fontWeight: "bold" }}
-                >
-                  <span>{hours}</span>
-                  <span>:</span>
-                  <span>{minutes}</span>
-                  <span style={{ fontSize: "0.8rem", marginLeft: "0px" }}>
-                    <span>:</span>{seconds}
-                  </span>
-                  <span
-                    style={{
-                      fontSize: "1.5rem",
-                      marginLeft: "10px",
-                      fontWeight: "500",
-                    }}
-                  >
-                    {ampm}
-                  </span>
-                </div>
-              </div>
-              <div className="d-flex gap-3">
-                <Button
-                  variant="light"
-                  onClick={handleAuthToggle}
-                  style={{
-                    color: isLoggedIn ? "#d9534f" : "#5cb85c",
-                    borderRadius: "5px",
-                    fontWeight: "500",
-                    fontSize: "12px",
-                    textWrap: "nowrap"
-                  }}
-                >
-                  {isLoggedIn ? "Logout" : "Web Clock-In"}
-                </Button>
-                <Dropdown>
-                  <Dropdown.Toggle
-                    variant="light"
-                    id="dropdown-basic"
-                    style={{
-                      borderRadius: "5px",
-                      fontWeight: "500",
-                    }}
-                  >
-                    Other
-                  </Dropdown.Toggle>
-                  <Dropdown.Menu>
-                    <Dropdown.Item
-                      onClick={() => console.log("Work from home Clicked")}
-                    >
-                      Work from home
-                    </Dropdown.Item>
-                    <Dropdown.Item
-                      onClick={() => console.log("Partial Day Clicked")}
-                    >
-                      Partial Day
-                    </Dropdown.Item>
-                  </Dropdown.Menu>
-                </Dropdown>
-              </div>
-            </div>
-          </Card>
-        </Col>
-
-        <Col lg={6}>
-          <Card
-            className="p-4"
-            style={{
-              backgroundColor: "#d0c4a1",
-              color: "#000",
-              borderRadius: "10px",
-            }}
-          >
-            <div className="d-flex justify-content-between align-items-center">
-              <div>
-                <h5
-                  className="mb-3"
-                  style={{ fontSize: "1.1rem", fontWeight: 600, color: "white" }}
-                >
-                  Leave Balances
-                </h5>
-                <div className="d-flex gap-4 align-items-center">
-                  {/* Unpaid Leave */}
-                  <div style={{ textAlign: "center" }}>
-                    <div
-                      style={{
-                        width: "60px",
-                        height: "60px",
-                        border: "3px solid #a5d8ff",
-                        borderRadius: "50%",
-                        display: "flex",
-                        justifyContent: "center",
-                        alignItems: "center",
-                        margin: "auto",
-                      }}
-                    >
-                      <span style={{ fontSize: "1.5rem", fontWeight: "bold" }}>∞</span>
-                    </div>
-                    <p className="mt-2 mb-0" style={{ fontSize: "0.9rem", color: "white" }}>UNPAID LEAVE</p>
-                  </div>
-
-                  {/* Privilege Leave */}
-                  <div style={{ textAlign: "center" }}>
-                    <div
-                      style={{
-                        width: "60px",
-                        height: "60px",
-                        border: "3px solid #a5d8ff",
-                        borderRadius: "50%",
-                        display: "flex",
-                        justifyContent: "center",
-                        alignItems: "center",
-                        margin: "auto",
-                      }}
-                    >
-                      <span style={{ fontSize: "1rem", fontWeight: "bold" }}>{totalLeaves.current}</span>
-                    </div>
-                    <p className="mt-2 mb-0" style={{ fontSize: "0.9rem", color: "white" }}>PRIVILEGE LEAVE</p>
-                  </div>
-                </div>
-              </div>
-
-              <div style={{ textAlign: "right" }}>
-                <a
-                  className="mb-2"
-                  style={{
-                    display: "inline-block",
-                    color: "white",
-                    fontWeight: "500",
-                    textDecoration: "none",
-                    marginBottom: "10px",
-                  }}
-                  onClick={() => setShow(true)}
-                >
-                  Request Leave
-                </a>
-                <br />
-                <a
-                  style={{
-                    display: "inline-block",
-                    color: "white",
-                    fontWeight: "500",
-                    textDecoration: "none",
-                  }}
-                  onClick={() => navigate("/leaves")}
-                >
-                  View All Balances
-                </a>
-              </div>
-            </div>
-          </Card>
-        </Col>
+     <div className="d-flex justify-content-between align-items-center ">
+          <PageTitle
+            title="Leave"
+            backArrow={true}
+          />
+        </div>
+      <Row className="mb-3">
+        {permission && permission?.isRead && (
+          <Grid
+            rows={rows}
+            headers={headers}
+            showDateFilter={true}
+            showSearch={true}
+            ShowLoader={ShowLoader}
+            count={totalCount}
+            onPageChange={onPageChange}
+            errorMessage={"No Admin Found"}
+          />
+        )}
       </Row>
 
       <Modal show={isLogoutPopupVisible} onHide={() => setIsLogoutPopupVisible(false)}>
