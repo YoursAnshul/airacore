@@ -11,6 +11,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -84,6 +85,51 @@ public class LeaveRequestController {
         );
 
         return ResponseEntity.ok(response);
+    }
+    
+    @PutMapping("/{userId}/{leaveRequestId}")
+    public ResponseEntity<AppResponse<?>> updateLeaveRequest(
+            @PathVariable("userId") Long userId,
+            @PathVariable("leaveRequestId") Long leaveRequestId,
+            @RequestBody LeaveRequestDTO leaveRequestDTO) {
+        try {
+            LeaveRequest updatedLeaveRequest = leaveRequestService.updateLeaveRequest(leaveRequestId, leaveRequestDTO, userId);
+            AppResponse<?> response = new AppResponse<>(
+                    true,
+                    "Leave request updated successfully",
+                    updatedLeaveRequest.getId()
+            );
+            return ResponseEntity.status(HttpStatus.OK).body(response);
+        } catch (Exception e) {
+            AppResponse<?> response = new AppResponse<>(
+                    false,
+                    e.getMessage(),
+                    ""
+            );
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+        }
+    }
+    
+    @PostMapping("/cancel/{userId}/{leaveRequestId}")
+    public ResponseEntity<AppResponse<?>> cancelLeaveRequest(
+            @PathVariable("userId") Long userId,
+            @PathVariable("leaveRequestId") Long leaveRequestId) {
+        try {
+            leaveRequestService.cancelLeaveRequest(leaveRequestId, userId);
+            AppResponse<?> response = new AppResponse<>(
+                    true,
+                    "Leave request cancelled successfully",
+                    leaveRequestId
+            );
+            return ResponseEntity.status(HttpStatus.OK).body(response);
+        } catch (Exception e) {
+            AppResponse<?> response = new AppResponse<>(
+                    false,
+                    e.getMessage(),
+                    ""
+            );
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+        }
     }
 
     

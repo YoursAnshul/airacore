@@ -16,6 +16,7 @@ const UserManagement = React.lazy(() => import("../pages/AdminUserManagement/Adm
 const RoleManagement = React.lazy(() => import("../pages/AdminRoleManagement/AdminRoleManagement"));
 const AddRole = React.lazy(() => import("../pages/AdminRoleManagement/AddRole"));
 const Profile = React.lazy(() => import("../pages/Profile/Profile"));
+const AdminLeaveManagement = React.lazy(() => import("../pages/AdminLeaveManagement/AdminLeaveManagement"));
 
 interface ProtectedRouteProps extends RoutesProps {
   isAuthenticated: boolean;
@@ -47,6 +48,7 @@ const Navigation = () => {
           <Route path="/" element={<ProtectedRoute {...defaultProtectedRouteProps} outlet={<Main />} />}>
             <Route path="/dashboard" element={<Suspense fallback={<></>}> <Dashboard /> </Suspense>} />
             <Route path="/leaves" element={<Suspense fallback={<></>}> <LeaveRequests/> </Suspense>} />
+            <Route path="/leave-management" element={<Suspense fallback={<></>}> <AdminLeaveManagement/> </Suspense>} />
             <Route path="/user-management" element={<Suspense fallback={<></>}> <UserManagement /> </Suspense>} />
             <Route path="/role-management" element={<Suspense fallback={<></>}> <RoleManagement /> </Suspense>} />
             <Route path="/login-logout" element={<Suspense fallback={<></>}> <LogninLogoutLogs /> </Suspense>} />

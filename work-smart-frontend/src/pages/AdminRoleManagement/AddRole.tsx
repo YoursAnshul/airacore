@@ -47,6 +47,13 @@ const listData: any[] = [
     isUpdate: false,
     isDelete: false,
     isCreate: false,
+  },
+  {
+    name: "Admin Leave Management",
+    isRead: false,
+    isUpdate: false,
+    isDelete: false,
+    isCreate: false,
   }
 ];
 

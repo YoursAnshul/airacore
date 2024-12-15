@@ -54,7 +54,12 @@ const VerticalMenu = () => {
             label: "Admin Role Management",
             icon: <MdManageAccounts className="menu-icon" />,
         },
-        
+        {
+            id: 18,
+            path: "/leave-management",
+            label: "Admin Leave Management",
+            icon: <MdManageAccounts className="menu-icon" />,
+        },
     ];
 
     return (

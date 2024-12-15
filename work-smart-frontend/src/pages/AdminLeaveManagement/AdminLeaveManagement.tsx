@@ -106,7 +106,7 @@ const Dashboard = () => {
         RolePermission?.rolePermission?.menus.length > 0
       ) {
         const data = RolePermission?.rolePermission?.menus.find(
-          (item: any) => item.name == "Dashboard"
+          (item: any) => item.name == "Admin Leave Management"
         );
         if (data && data.isRead) {
           setPermission(data);
@@ -481,8 +481,7 @@ const Dashboard = () => {
         />
      <div className="d-flex justify-content-between align-items-center ">
           <PageTitle
-            title="Leave"
-            backArrow={true}
+            title="Admin Leave Management"
           />
         </div>
       <Row className="mb-3">
