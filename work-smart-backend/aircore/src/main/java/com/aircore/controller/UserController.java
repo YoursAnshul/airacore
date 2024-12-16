@@ -32,6 +32,7 @@ import com.aircore.response.PageableResponse;
 import com.aircore.response.RoleDetailsResponse;
 import com.aircore.response.RoleResponse;
 import com.aircore.response.RoleResponseDropdown;
+import com.aircore.response.UserDropdownResponse;
 import com.aircore.response.UserResponse;
 import com.aircore.service.UserService;
 import com.aircore.utility.Constant;
@@ -137,6 +138,12 @@ public class UserController {
 	public ResponseEntity<List<RoleResponseDropdown>> getRoleDropdown() {
 		List<RoleResponseDropdown> roles = userSerivce.getActiveRolesForDropdown();
 		return ResponseEntity.ok(roles);
+	}
+	
+	@GetMapping("/users-dropdown")
+	public ResponseEntity<List<UserDropdownResponse>> getActiveUsersForDropdown() {
+	    List<UserDropdownResponse> activeUsers = userSerivce.getActiveUsersForDropdown();
+	    return ResponseEntity.ok(activeUsers);
 	}
 
 	@PutMapping("/update/user/{id}")

@@ -33,6 +33,7 @@ import com.aircore.request.UpdateProfileRequest;
 import com.aircore.response.RoleDetailsResponse;
 import com.aircore.response.RoleResponse;
 import com.aircore.response.RoleResponseDropdown;
+import com.aircore.response.UserDropdownResponse;
 import com.aircore.response.UserResponse;
 import com.aircore.utility.Enumeration.Status;
 
@@ -260,6 +261,13 @@ public class UserService {
         return activeRoles.stream()
                 .map(role -> new RoleResponseDropdown(role.getId(), role.getName(), role.getStatus().toString()))
                 .collect(Collectors.toList());
+    }
+    
+    public List<UserDropdownResponse> getActiveUsersForDropdown() {
+        List<User> activeUsers = userRepository.findByStatusAndPosition(Status.ACTIVE, "MANAGER");
+        return activeUsers.stream()
+                .map(user -> new UserDropdownResponse(user.getId(), user.getFirstName() + " " + user.getLastName()))
+                .collect(Collectors.toList());	
     }
     
     public void updateUser(Long id, User userRequest) throws Exception {

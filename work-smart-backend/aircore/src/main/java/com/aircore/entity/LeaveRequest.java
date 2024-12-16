@@ -12,6 +12,9 @@ import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.PrePersist;
+import jakarta.persistence.Temporal;
+import jakarta.persistence.TemporalType;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -35,5 +38,12 @@ public class LeaveRequest {
 	private String rejectReason;
 	@Enumerated(EnumType.STRING)
 	private AplyType applyType;
+	@Temporal(TemporalType.TIMESTAMP)
+	private Date createDate;
+	private Date updatedDate;
+	@PrePersist
+	protected void onCreate() {
+		this.createDate = new Date();
+	}
 	
 }

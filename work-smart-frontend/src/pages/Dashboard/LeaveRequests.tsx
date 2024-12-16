@@ -11,7 +11,7 @@ import { Controller } from "react-bootstrap-icons";
 import { reduxState } from "../../reducer/CommonReducer";
 import { useNavigate } from "react-router-dom";
 import DatePicker from "react-datepicker";
-import { format, differenceInCalendarDays } from "date-fns";
+import { format, differenceInCalendarDays, differenceInDays } from "date-fns";
 import Grid, {
   GridColumn,
   GridHeader,
@@ -25,15 +25,11 @@ import CancelLeave from "../../components/Common/DeleteModal/Cancel Leave Reques
 
 const headers: GridHeader[] = [
   {
-    title: "Sr. No.",
+    title: "Leave Date",
     class: "text-center",
   },
   {
-    title: "Start Date",
-    class: "text-center",
-  },
-  {
-    title: "End Date",
+    title: "Leave Type",
     class: "text-center",
   },
   {
@@ -41,11 +37,19 @@ const headers: GridHeader[] = [
     class: "text-center",
   },
   {
-    title: "Note",
+    title: "Requested By",
     class: "text-center",
   },
   {
-    title: "Approved By",
+    title: "Action Taken on",
+    class: "text-center",
+  },
+  {
+    title: "Leave Note",
+    class: "text-center",
+  },
+  {
+    title: "Reject Reason",
     class: "text-center",
   },
   {
@@ -225,7 +229,7 @@ const Dashboard = () => {
       leaveType: data.leaveType,
       note: data.note,
     };
-    if(daysApplied == 1){
+    if (daysApplied == 1) {
       payload["applyFor"] = data.applyFor;
     }
     const userId = userInfoData?.user_info?.id;
@@ -324,29 +328,32 @@ const Dashboard = () => {
             } ${res.list[i].lastName ? res.list[i].lastName : ""}`.trim();
           let columns: GridColumn[] = [];
           // columns.push({ value: `${page - 1}${Number(i) + 1}` });
-          columns.push({ value: `${startCount++}` });
           columns.push({
-            value:
-              res.list[i].startDate &&
-              HelperService.getFormattedDatebyText(res.list[i].startDate),
+            value: leaveDate(res.list[i].startDate, res.list[i].endDate, res.list[i].applyType),
+            type: "COMPONENT",
           });
           columns.push({
-            value:
-              res.list[i].endDate &&
-              HelperService.getFormattedDatebyText(res.list[i].endDate),
+            value: leaveTypeAndRequestedOn(res.list[i].createdDate, res.list[i].leaveType),
+            type: "COMPONENT",
           });
           columns.push({
             value: statusList(
-              res.list[i].leaveStatus ? res.list[i].leaveStatus : "N/A"
+              res.list[i].leaveStatus ? res.list[i].leaveStatus : "-"
             ),
           });
 
-          // columns.push({ value: res.list[i].firstName ? res.list[i].firstName : "N/A" });
           columns.push({
-            value: res.list[i].description ? res.list[i].description : "N/A",
+            value:
+              res.list[i].username ? res.list[i].username : "-",
           });
           columns.push({
-            value: res.list[i].description ? res.list[i].description : "N/A",
+            value: res.list[i].updateDate ? HelperService.getFormattedDatebyText(res.list[i].updateDate) : "N/A",
+          });
+          columns.push({
+            value: res.list[i].description ? res.list[i].description : "-",
+          });
+          columns.push({
+            value: res.list[i].rejectReason ? res.list[i].rejectReason : "-",
           });
           columns.push({
             value: actionList(Number(i), "ACTION", res.list[i]),
@@ -437,6 +444,37 @@ const Dashboard = () => {
     );
   };
 
+  const leaveDate = (startDate: string, endDate: string, type: string) => {
+    const start = new Date(startDate);
+    const end = new Date(endDate);
+
+    var dayDifference = differenceInDays(end, start) + 1;
+    if (type == 'FIRST_HALF' || type == 'SECOND_HALF') {
+      dayDifference = 0.5;
+    }
+    return (
+      <div>
+        <div>
+          {dayDifference > 1
+            ? `${HelperService.getFormattedDatebyText(start)} to ${HelperService.getFormattedDatebyText(end)}`
+            : HelperService.getFormattedDatebyText(start)}
+        </div>
+        <div>{dayDifference === 1 ? "1 day" : `${dayDifference} days`}</div>
+      </div>
+    );
+  };
+
+  const leaveTypeAndRequestedOn = (requestDate: any, type: string) => {
+    const end = new Date(requestDate);
+    return (
+      <div>
+        <div>{type === "PRIVILEGE_LEAVE" ? "Privilege Leave" : 'Unpaid Leave'}</div>
+        <div style={{fontSize: "11px", color: "#847d7d", textWrap: "nowrap"}}>Requested On {HelperService.getFormattedDatebyText(end)}
+        </div>
+      </div>
+    );
+  }
+
   const statusList = (status: string) => {
     if (status === "APPROVED") {
       return (
@@ -470,21 +508,21 @@ const Dashboard = () => {
 
   return (
     <div className="app-page page-dashboard">
-       <CancelLeave
-          isShow={showDeleteModal}
-          close={() => {
-            setDeleteModal(false);
-          }}
-          onDelete={() => {
-            onDelete();
-          }}
+      <CancelLeave
+        isShow={showDeleteModal}
+        close={() => {
+          setDeleteModal(false);
+        }}
+        onDelete={() => {
+          onDelete();
+        }}
+      />
+      <div className="d-flex justify-content-between align-items-center ">
+        <PageTitle
+          title="Leave"
+          backArrow={true}
         />
-     <div className="d-flex justify-content-between align-items-center ">
-          <PageTitle
-            title="Leave"
-            backArrow={true}
-          />
-        </div>
+      </div>
       <Row className="mb-3">
         {permission && permission?.isRead && (
           <Grid
@@ -649,7 +687,7 @@ const Dashboard = () => {
             </Button>
           </div>
         </Offcanvas.Body>
-      </Offcanvas> 
+      </Offcanvas>
 
     </div>
   );

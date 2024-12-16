@@ -11,29 +11,25 @@ import { Controller } from "react-bootstrap-icons";
 import { reduxState } from "../../reducer/CommonReducer";
 import { useNavigate } from "react-router-dom";
 import DatePicker from "react-datepicker";
-import { format, differenceInCalendarDays } from "date-fns";
+import { format, differenceInCalendarDays, differenceInDays } from "date-fns";
 import Grid, {
   GridColumn,
   GridHeader,
   GridRow,
 } from "../../components/Grid/Grid";
 import { FaRegTrashAlt } from "react-icons/fa";
-import { MdLockReset, MdOutlineModeEditOutline } from "react-icons/md";
+import { MdLockReset, MdOutlineModeEditOutline, MdOutlinePanoramaFishEye, MdOutlineRemoveRedEye } from "react-icons/md";
 import PageTitle from "../../components/Common/PageTitle";
 import DeleteModal from "../../components/Common/DeleteModal/DeleteModal";
 import CancelLeave from "../../components/Common/DeleteModal/Cancel Leave Request";
 
 const headers: GridHeader[] = [
   {
-    title: "Sr. No.",
+    title: "Leave Date",
     class: "text-center",
   },
   {
-    title: "Start Date",
-    class: "text-center",
-  },
-  {
-    title: "End Date",
+    title: "Leave Type",
     class: "text-center",
   },
   {
@@ -41,11 +37,19 @@ const headers: GridHeader[] = [
     class: "text-center",
   },
   {
-    title: "Note",
+    title: "Requested By",
     class: "text-center",
   },
   {
-    title: "Approved By",
+    title: "Action Taken on",
+    class: "text-center",
+  },
+  {
+    title: "Leave Note",
+    class: "text-center",
+  },
+  {
+    title: "Reject Reason",
     class: "text-center",
   },
   {
@@ -59,11 +63,11 @@ const Dashboard = () => {
   const [currentTime, setCurrentTime] = useState(new Date());
   const userInfoData: any = useSelector<RootState, any>((state: any) => state.userInfoData);
   const loggedId = useRef<number>(0);
-  const [isLogoutPopupVisible, setIsLogoutPopupVisible] = useState(false);
-  const [logoutDescription, setLogoutDescription] = useState("");
+  const [rejectReason, setRejectReason] = useState("");
   const [show, setShow] = useState(false);
   const [permission, setPermission] = useState<any>();
   const totalLeaves = useRef<number>(0);
+  const [showRejectionPopup, setShowRejectionPopup] = useState(false);
   const RolePermission: any = useSelector<RootState, reduxState>(
     (state: any) => state.RolePermission
   );
@@ -165,15 +169,15 @@ const Dashboard = () => {
   };
 
   const handleLogoutClick = () => {
-    setLogoutDescription("");
-    setIsLogoutPopupVisible(true);
+    setRejectReason("");
+    setShowRejectionPopup(true);
   };
 
-  const handleLogoutSubmit = () => {
-    logout();
+  const rejectLeave = () => {
+    rejectLeaveRequest();
   };
 
-  const logout = () => {
+  const rejectLeaveRequest = () => {
     WebService.getAPI({ action: `api/login-logout-logs/status/${userInfoData?.user_info?.id}`, id: "status-check" })
       .then((response: any) => {
         if (response?.success) {
@@ -183,13 +187,13 @@ const Dashboard = () => {
             WebService.postAPI({
               action: `api/login-logout-logs/logout/${loginId}`,
               id: "logout-btn",
-              body: { description: logoutDescription }
+              body: { description: rejectReason }
             })
               .then((response: any) => {
                 if (response?.success) {
                   setIsLoggedIn(false);
                   toast.success("Logged out successfully");
-                  setIsLogoutPopupVisible(false);
+                  setShowRejectionPopup(false);
                 }
               })
               .catch((error: any) => {
@@ -324,29 +328,32 @@ const Dashboard = () => {
             } ${res.list[i].lastName ? res.list[i].lastName : ""}`.trim();
           let columns: GridColumn[] = [];
           // columns.push({ value: `${page - 1}${Number(i) + 1}` });
-          columns.push({ value: `${startCount++}` });
           columns.push({
-            value:
-              res.list[i].startDate &&
-              HelperService.getFormattedDatebyText(res.list[i].startDate),
+            value: leaveDate(res.list[i].startDate, res.list[i].endDate, res.list[i].applyType),
+            type: "COMPONENT",
           });
           columns.push({
-            value:
-              res.list[i].endDate &&
-              HelperService.getFormattedDatebyText(res.list[i].endDate),
+            value: leaveTypeAndRequestedOn(res.list[i].createdDate, res.list[i].leaveType),
+            type: "COMPONENT",
           });
           columns.push({
             value: statusList(
-              res.list[i].leaveStatus ? res.list[i].leaveStatus : "N/A"
+              res.list[i].leaveStatus ? res.list[i].leaveStatus : "-"
             ),
           });
 
-          // columns.push({ value: res.list[i].firstName ? res.list[i].firstName : "N/A" });
           columns.push({
-            value: res.list[i].description ? res.list[i].description : "N/A",
+            value:
+              res.list[i].username ? res.list[i].username : "-",
           });
           columns.push({
-            value: res.list[i].description ? res.list[i].description : "N/A",
+            value: res.list[i].updateDate ? HelperService.getFormattedDatebyText(res.list[i].updateDate) : "N/A",
+          });
+          columns.push({
+            value: res.list[i].description ? res.list[i].description : "-",
+          });
+          columns.push({
+            value: res.list[i].rejectReason ? res.list[i].rejectReason : "-",
           });
           columns.push({
             value: actionList(Number(i), "ACTION", res.list[i]),
@@ -362,6 +369,38 @@ const Dashboard = () => {
         setShowLoader(false);
       });
   };
+
+
+  const leaveDate = (startDate: string, endDate: string, type: string) => {
+    const start = new Date(startDate);
+    const end = new Date(endDate);
+
+    var dayDifference = differenceInDays(end, start) + 1;
+    if (type == 'FIRST_HALF' || type == 'SECOND_HALF') {
+      dayDifference = 0.5;
+    }
+    return (
+      <div>
+        <div>
+          {dayDifference > 1
+            ? `${HelperService.getFormattedDatebyText(start)} to ${HelperService.getFormattedDatebyText(end)}`
+            : HelperService.getFormattedDatebyText(start)}
+        </div>
+        <div>{dayDifference === 1 ? "1 day" : `${dayDifference} days`}</div>
+      </div>
+    );
+  };
+
+  const leaveTypeAndRequestedOn = (requestDate: any, type: string) => {
+    const end = new Date(requestDate);
+    return (
+      <div>
+        <div>{type === "PRIVILEGE_LEAVE" ? "Privilege Leave" : 'Unpaid Leave'}</div>
+        <div style={{fontSize: "11px", color: "#847d7d", textWrap: "nowrap"}}>Requested On {HelperService.getFormattedDatebyText(end)}
+        </div>
+      </div>
+    );
+  }
 
   const onEdit = (val: any) => {
     reset(val);
@@ -420,10 +459,10 @@ const Dashboard = () => {
           data-placement="top"
           title="Edit"
         >
-          <MdOutlineModeEditOutline className="icon" />
+          <MdOutlineRemoveRedEye className="icon" />
         </button>
 
-        <button
+        {/* <button
           type="button"
           className="btn btn-delete"
           onClick={() => onConfirmDelete(data)}
@@ -432,7 +471,7 @@ const Dashboard = () => {
           title="Delete"
         >
           <FaRegTrashAlt className="icon" />
-        </button>
+        </button> */}
       </div>
     );
   };
@@ -499,36 +538,9 @@ const Dashboard = () => {
         )}
       </Row>
 
-      <Modal show={isLogoutPopupVisible} onHide={() => setIsLogoutPopupVisible(false)}>
-        <Modal.Header closeButton>
-          <Modal.Title>Logout Confirmation</Modal.Title>
-        </Modal.Header>
-        <Modal.Body>
-          <Form.Group controlId="logoutDescription">
-            <Form.Label>Enter Completed Task</Form.Label>
-            <Form.Control
-              as="textarea"
-              rows={3}
-              value={logoutDescription}
-              onChange={(e) => setLogoutDescription(e.target.value)}
-              placeholder="Enter any updates or reason for logging out..."
-            />
-          </Form.Group>
-        </Modal.Body>
-        <Modal.Footer>
-          <Button variant="secondary" onClick={() => setIsLogoutPopupVisible(false)}>
-            Cancel
-          </Button>
-          <Button disabled={!logoutDescription} className="btn-brand-1"
-            onClick={handleLogoutSubmit}>
-            Submit and Logout
-          </Button>
-        </Modal.Footer>
-      </Modal>
-
       <Offcanvas show={show} onHide={handleCloseAddUser} placement="end">
         <Offcanvas.Header closeButton>
-          <Offcanvas.Title>Request Leave</Offcanvas.Title>
+          <Offcanvas.Title>Requested Leave</Offcanvas.Title>
         </Offcanvas.Header>
         <Offcanvas.Body className="form-style d-flex flex-column">
           <form className="mb-3 flex-grow-1" onSubmit={handleSubmit(requestLeave)}>
@@ -634,9 +646,9 @@ const Dashboard = () => {
             <Button
               variant="secondary"
               className="me-2"
-              onClick={handleCloseAddUser}
+              onClick={() => setShowRejectionPopup(true)}
             >
-              Cancel
+              Reject
             </Button>
             <Button
               type="submit"
@@ -644,11 +656,38 @@ const Dashboard = () => {
               style={{ backgroundColor: "#6c63ff", borderColor: "#6c63ff" }}
               onClick={handleSubmit(requestLeave)}
             >
-              Request
+              Approve
             </Button>
           </div>
         </Offcanvas.Body>
       </Offcanvas> 
+
+      <Modal show={showRejectionPopup} onHide={() => setShowRejectionPopup(false)}>
+        <Modal.Header closeButton>
+          <Modal.Title>Cancelation Reason</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          <Form.Group controlId="logoutDescription">
+            <Form.Label>Enter Reason</Form.Label>
+            <Form.Control
+              as="textarea"
+              rows={3}
+              value={rejectReason}
+              onChange={(e) => setRejectReason(e.target.value)}
+              placeholder="Enter any updates or reason for logging out..."
+            />
+          </Form.Group>
+        </Modal.Body>
+        <Modal.Footer>
+          <Button variant="secondary" onClick={() => setShowRejectionPopup(false)}>
+            Cancel
+          </Button>
+          <Button disabled={!rejectReason} className="btn-brand-1"
+            onClick={rejectLeave}>
+            Reject
+          </Button>
+        </Modal.Footer>
+      </Modal>
 
     </div>
   );

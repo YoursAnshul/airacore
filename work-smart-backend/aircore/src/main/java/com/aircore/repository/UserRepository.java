@@ -1,6 +1,7 @@
 package com.aircore.repository;
 
 import java.util.Date;
+import java.util.List;
 import java.util.Optional;
 
 import org.springframework.data.domain.Page;
@@ -43,5 +44,8 @@ public interface UserRepository extends JpaRepository<User, Long> {
 			@Param("dateTo") Date dateTo);
 
 	Optional<User> findByEmailAndStatus(String email, Status active);
+		
+	List<User> findByStatusAndPosition(Status status, String position);
+
 
 }

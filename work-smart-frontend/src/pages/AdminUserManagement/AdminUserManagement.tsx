@@ -93,6 +93,9 @@ const AdminUserManagement = () => {
   const [isloginUserId, setloginUserId] = useState<any>();
   const [loginUserAccess, setLoginUserAccess] = useState<any>();
   const [isAllRoleList, setAllRoleList] = useState<any>();
+  const [allUserList, setAllUserList] = useState<any>();
+  const [twoLevelLeaveApproveOptions, setTwoLevelLeaveApproveOptions] = useState<any[]>([{id: "YES", value: "Yes"}, {id: "NO", value: "No"}]);
+  const [positions, setPositions] = useState<any[]>([{id: "MANAGER", value: "Manager"}, {id: "DEVELOPER", value: "Developer"}]);
   const [isShowNewPassword, setIsShowNewPassword] = useState<boolean>(false);
   const [page, setPage] = useState(1);
 
@@ -122,6 +125,7 @@ const AdminUserManagement = () => {
   useEffect(() => {
     getCustomers(1);
     getAllRoleList();
+    getAllUserList();
     if (
       userInfoData &&
       userInfoData?.user_info &&
@@ -168,6 +172,20 @@ const AdminUserManagement = () => {
       .catch(() => { });
   };
 
+  const getAllUserList = () => {
+    WebService.getAPI({
+      action: `api/user/users-dropdown`,
+    })
+      .then((res: any) => {
+        let temp: any[] = [];
+        for (var i in res) {
+          temp.push({ id: res[i].id, value: res[i].userName });
+        }
+        setAllUserList(temp);
+      })
+      .catch(() => { });
+  };
+
   const addUser = (data: any) => {
     if (data.id) {
       const { createdDate, ...dataToUpdate } = data;
@@ -194,7 +212,6 @@ const AdminUserManagement = () => {
           toast.success("User Created Successfully");
         })
         .catch(() => {
-          toast.error("User Creation Failed try again.");
         });
     }
   };
@@ -626,6 +643,91 @@ const AdminUserManagement = () => {
               )}
             </Col>
 
+            <Col lg={12}>
+              <Controller
+                control={control}
+                name="position"
+                rules={{
+                  required: true,
+                }}
+                render={({ field }) => (
+                  <Form.Group className="mb-1 mt-3">
+                    <Form.Label>Position</Form.Label>
+                    <Form.Control
+                      as="select"
+                      {...field}
+                      className="form-select"
+                    >
+                      <option value="">Select Position</option> {/* Default placeholder */}
+                      {positions.map((role: { id: string; value: string }) => (
+                        <option key={role.id} value={role.id}>
+                          {role.value}
+                        </option>
+                      ))}
+                    </Form.Control>
+                  </Form.Group>
+                )}
+              />
+              {errors.position && (
+                <div className="login-error mt-2">
+                  <Label title={"Please Select Position."} modeError={true} />
+                </div>
+              )}
+            </Col>
+
+            <Col lg={12}>
+              <Controller
+                control={control}
+                name="twoLevelLeaveApprove"
+                rules={{
+                  required: false,
+                }}
+                render={({ field }) => (
+                  <Form.Group className="mb-1 mt-3">
+                    <Form.Label>Two Level Leave Varification</Form.Label>
+                    <Form.Control
+                      as="select"
+                      {...field}
+                      className="form-select"
+                    >
+                      <option value="">Select Two Level Leave Varification</option> {/* Default placeholder */}
+                      {twoLevelLeaveApproveOptions.map((role: { id: string; value: string }) => (
+                        <option key={role.id} value={role.id}>
+                          {role.value}
+                        </option>
+                      ))}
+                    </Form.Control>
+                  </Form.Group>
+                )}
+              />
+            </Col>
+
+            <Col lg={12}>
+              <Controller
+                control={control}
+                name="reporting_manager"
+                rules={{
+                  required: false,
+                }}
+                render={({ field }) => (
+                  <Form.Group className="mb-1 mt-3">
+                    <Form.Label>Reporting Manager</Form.Label>
+                    <Form.Control
+                      as="select"
+                      {...field}
+                      className="form-select"
+                    >
+                      <option value="">Select Reporting Manager</option> {/* Default placeholder */}
+                      {allUserList.map((role: { id: number; value: string }) => (
+                        <option key={role.id} value={role.id}>
+                          {role.value}
+                        </option>
+                      ))}
+                    </Form.Control>
+                  </Form.Group>
+                )}
+              />
+            </Col>
 
             <Button
               id="add_country"

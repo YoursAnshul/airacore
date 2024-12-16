@@ -2,6 +2,7 @@ package com.aircore.response;
 
 import java.util.Date;
 
+import com.aircore.utility.Enumeration.AplyType;
 import com.aircore.utility.Enumeration.LeaveStatus;
 import com.aircore.utility.Enumeration.LeaveType;
 
@@ -21,5 +22,9 @@ public class LeaveRequestResponse {
     private LeaveStatus leaveStatus;
     private String approvedByName;
     private String description;
+    private Date createdDate;
+    private Date updateDate;
+    private String rejectReason;
+    private AplyType applyType;
 }
 

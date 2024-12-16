@@ -41,7 +41,6 @@ public class User {
     
     @Column(nullable = false, unique = false)
     private String email;
-    
 
     @Column(nullable = false)
     private String password;
@@ -55,6 +54,13 @@ public class User {
     private Date createdDate;
     
     private Double totalLeave;
+    
+	@Column(name = "reporting_manager", nullable = true, unique = false)
+    private Long reporting_manager;
+	
+	private String position;
+	
+	private String twoLevelLeaveApprove;
     
     @ManyToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
     @JoinTable(

@@ -150,8 +150,6 @@ public class LeaveRequestService {
 		Date startDateFilter = (startDate != null) ? java.sql.Date.valueOf(startDate) : null;
 		Date endDateFilter = (endDate != null) ? java.sql.Date.valueOf(endDate) : null;
 
-		System.out.println(startDateFilter + " " + endDateFilter);
-
 		return leaveRequestRepository.findFilteredLeaveRequests(keyword != null ? "%" + keyword + "%" : null,
 				startDateFilter, endDateFilter, leaveType, leaveStatus, pageable);
 	}

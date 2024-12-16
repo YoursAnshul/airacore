@@ -56,6 +56,8 @@ public class LoginLogoutLogs {
 
 	private String description;
 	
+	private Date updatedDate;
+	
     @OneToMany(mappedBy = "loginLogoutLogs", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<LoginLogoutLogsDetails> details;
     

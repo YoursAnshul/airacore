@@ -25,7 +25,7 @@ public interface LeaveRequestRepository extends JpaRepository<LeaveRequest, Long
 	        "lr.leaveType, " +
 	        "lr.leaveStatus, " +
 	        "CONCAT(a.firstName, ' ', a.lastName) AS approvedByName, " +
-	        "lr.description) " +
+	        "lr.description, lr.createDate, lr.updatedDate, lr.rejectReason, lr.applyType) " +
 	        "FROM LeaveRequest lr " +
 	        "JOIN User u ON lr.userId = u.id " +
 	        "LEFT JOIN User a ON lr.approvedBy = a.id " +
