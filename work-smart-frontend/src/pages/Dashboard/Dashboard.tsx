@@ -97,8 +97,9 @@ const Dashboard = () => {
         RolePermission?.rolePermission?.menus.length > 0
       ) {
         const data = RolePermission?.rolePermission?.menus.find(
-          (item: any) => item.name == "Admin User Management"
+          (item: any) => item.name == "Dashboard"
         );
+        console.log(RolePermission?.rolePermission);
         if (data && data.isRead) {
           setPermission(data);
           permissionCompute.current = data;
@@ -284,73 +285,6 @@ const Dashboard = () => {
     }
   };
 
-  const getCustomers = (
-    page: number,
-    keyword?: string,
-    startDate?: Date,
-    endDate?: Date
-  ) => {
-    pageCount.current = page;
-    setShowLoader(true);
-    WebService.getAPI({
-      action: `api/leave-requests/requests/${page}?keyword=${keyword ? keyword : ""
-        }&type=${"true"}&date_from=${startDate ? startDate : ""}&date_to=${endDate ? endDate : ""
-        }`,
-      body: null,
-    })
-      .then((res: any) => {
-        setShowLoader(false);
-        let rows: GridRow[] = [];
-        if (page == 1) {
-          setTotalCount(res.count);
-        }
-        let startCount = (page - 1) * 10 + 1;
-        if (page == 1) {
-          setTotalCount(res.count);
-        }
-
-        for (var i in res.list) {
-          const fullName = `${res.list[i].firstName ? res.list[i].firstName : ""
-            } ${res.list[i].lastName ? res.list[i].lastName : ""}`.trim();
-          let columns: GridColumn[] = [];
-          // columns.push({ value: `${page - 1}${Number(i) + 1}` });
-          columns.push({ value: `${startCount++}` });
-          columns.push({
-            value:
-              res.list[i].startDate &&
-              HelperService.getFormattedDatebyText(res.list[i].startDate),
-          });
-          columns.push({
-            value:
-              res.list[i].endDate &&
-              HelperService.getFormattedDatebyText(res.list[i].endDate),
-          });
-          columns.push({
-            value: statusList(
-              res.list[i].leaveStatus ? res.list[i].leaveStatus : "N/A"
-            ),
-          });
-
-          // columns.push({ value: res.list[i].firstName ? res.list[i].firstName : "N/A" });
-          columns.push({
-            value: res.list[i].description ? res.list[i].description : "N/A",
-          });
-
-          columns.push({
-            value: actionList(Number(i), "ACTION", res.list[i]),
-            type: "COMPONENT",
-          });
-          rowCompute.current.push({ data: columns });
-          rows.push({ data: columns });
-        }
-        rowCompute.current = rows;
-        setRows(rowCompute.current);
-      })
-      .catch((e) => {
-        setShowLoader(false);
-      });
-  };
-
   const onEdit = (val: any) => {
     reset(val);
     // setEditData(val);
@@ -417,11 +351,6 @@ const Dashboard = () => {
         </span>
       );
     }
-  };
-
-  const onPageChange = (data: any, value: string, startDate: any, endDate: any) => {
-    setPage(data);
-    getCustomers(data, value, startDate, endDate);
   };
 
   const calculateDayDifference = (start: Date | null, end: Date | null): number => {

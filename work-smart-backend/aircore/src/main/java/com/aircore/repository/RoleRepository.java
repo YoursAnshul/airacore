@@ -36,4 +36,7 @@ public interface RoleRepository extends JpaRepository<Role, Long> {
     @Query("SELECT rmp FROM RoleMenuPermission rmp WHERE rmp.role.id = :roleId")
     Set<RoleMenuPermission> findByRoleId(@Param("roleId") Long roleId);
 
+    Optional<Role> findByNameAndStatus(String name, String status);
+
+    
 }

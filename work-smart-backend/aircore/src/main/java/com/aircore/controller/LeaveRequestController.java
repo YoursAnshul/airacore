@@ -57,9 +57,10 @@ public class LeaveRequestController {
 		}
     }
 
-    @GetMapping("/requests/{page}")
+    @GetMapping("/requests/{userId}/{page}")
     public ResponseEntity<PageableResponse<LeaveRequestResponse>> getFilteredLeaveRequests(
             @PathVariable int page,
+            @PathVariable Long userId,
             @RequestParam(required = false) String keyword,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date_from,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date_to,
@@ -76,6 +77,39 @@ public class LeaveRequestController {
                 date_to,
                 leaveType,
                 leaveStatus,
+                userId,
+                PageRequest.of(page, Constant.LIMIT_10)
+        );
+
+        PageableResponse<LeaveRequestResponse> response = new PageableResponse<>(
+                (int) leaveRequestPage.getTotalElements(),
+                leaveRequestPage.getContent()
+        );
+
+        return ResponseEntity.ok(response);
+    }
+    
+    @GetMapping("/user/requests/{userId}/{page}")
+    public ResponseEntity<PageableResponse<LeaveRequestResponse>> getUsersLeaveRequests(
+            @PathVariable int page,
+            @PathVariable Long userId,
+            @RequestParam(required = false) String keyword,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date_from,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date_to,
+            @RequestParam(required = false) LeaveType leaveType,
+            @RequestParam(required = false) LeaveStatus leaveStatus) {
+
+        if (page > 0) {
+            page = page - 1;
+        }
+
+        Page<LeaveRequestResponse> leaveRequestPage = leaveRequestService.getFilteredLeaveRequestsUser(
+                keyword,
+                date_from,
+                date_to,
+                leaveType,
+                leaveStatus,
+                userId,
                 PageRequest.of(page, Constant.LIMIT_10)
         );
 
@@ -132,5 +166,50 @@ public class LeaveRequestController {
         }
     }
 
+    @PostMapping("/reject/{userId}/{leaveRequestId}")
+    public ResponseEntity<AppResponse<?>> rejectLeaveRequest(
+            @PathVariable("userId") Long userId,
+            @PathVariable("leaveRequestId") Long leaveRequestId,
+            @RequestParam String rejectReason) {
+        try {
+            leaveRequestService.rejectLeaveRequest(leaveRequestId, userId, rejectReason);
+            AppResponse<?> response = new AppResponse<>(
+                    true,
+                    "Leave request rejected successfully",
+                    leaveRequestId
+            );
+            return ResponseEntity.status(HttpStatus.OK).body(response);
+        } catch (Exception e) {
+            AppResponse<?> response = new AppResponse<>(
+                    false,
+                    e.getMessage(),
+                    ""
+            );
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+        }
+    }
+    
+    @PostMapping("/approve/{userId}/{leaveRequestId}")
+    public ResponseEntity<AppResponse<?>> approveLeaveRequest(
+            @PathVariable("userId") Long userId,
+            @PathVariable("leaveRequestId") Long leaveRequestId) {
+        try {
+            leaveRequestService.approveLeaveRequest(leaveRequestId, userId);
+            AppResponse<?> response = new AppResponse<>(
+                    true,
+                    "Leave request approved successfully",
+                    leaveRequestId
+            );
+            return ResponseEntity.status(HttpStatus.OK).body(response);
+        } catch (Exception e) {
+            AppResponse<?> response = new AppResponse<>(
+                    false,
+                    e.getMessage(),
+                    ""
+            );
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+        }
+    }
+    
     
 }

@@ -178,29 +178,24 @@ const Dashboard = () => {
   };
 
   const rejectLeaveRequest = () => {
-    WebService.getAPI({ action: `api/login-logout-logs/status/${userInfoData?.user_info?.id}`, id: "status-check" })
+    WebService.postAPI({ action: `api/leave-requests/reject/${userInfoData?.user_info?.id}/${openedId.current}?rejectReason=${rejectReason}`, id: "status-check" })
       .then((response: any) => {
-        if (response?.success) {
-          const { loggedIn, loginId } = response?.data;
-          setIsLoggedIn(loggedIn);
-          if (loggedIn && loginId) {
-            WebService.postAPI({
-              action: `api/login-logout-logs/logout/${loginId}`,
-              id: "logout-btn",
-              body: { description: rejectReason }
-            })
-              .then((response: any) => {
-                if (response?.success) {
-                  setIsLoggedIn(false);
-                  toast.success("Logged out successfully");
-                  setShowRejectionPopup(false);
-                }
-              })
-              .catch((error: any) => {
-                console.error("Logout failed", error);
-              });
-          }
-        }
+          toast.success(response.message);
+          setShowRejectionPopup(false);
+          setShow(false);
+          getCustomers(1);
+      })
+      .catch((error: any) => {
+        console.error("Error fetching user data", error);
+      });
+  };
+
+  const approveLeaveRequest = () => {
+    WebService.postAPI({ action: `api/leave-requests/approve/${userInfoData?.user_info?.id}/${openedId.current}`, id: "status-check" })
+      .then((response: any) => {
+          toast.success(response.message);
+          setShow(false);
+          getCustomers(1);
       })
       .catch((error: any) => {
         console.error("Error fetching user data", error);
@@ -307,7 +302,7 @@ const Dashboard = () => {
     pageCount.current = page;
     setShowLoader(true);
     WebService.getAPI({
-      action: `api/leave-requests/requests/${page}?keyword=${keyword ? keyword : ""
+      action: `api/leave-requests/requests/${userInfoData?.user_info?.id}/${page}?keyword=${keyword ? keyword : ""
         }&type=${"true"}&date_from=${startDate ? startDate : ""}&date_to=${endDate ? endDate : ""
         }`,
       body: null,
@@ -654,7 +649,7 @@ const Dashboard = () => {
               type="submit"
               className="btn-brand-1"
               style={{ backgroundColor: "#6c63ff", borderColor: "#6c63ff" }}
-              onClick={handleSubmit(requestLeave)}
+              onClick={handleSubmit(approveLeaveRequest)}
             >
               Approve
             </Button>

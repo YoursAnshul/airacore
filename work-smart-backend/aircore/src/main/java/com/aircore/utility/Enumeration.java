@@ -23,7 +23,7 @@ public class Enumeration {
 	}
 	
 	public enum LeaveStatus {
-		APPROVED, REJECTED, PENDING
+		APPROVED, REJECTED, PENDING, PARTIALLY_APPROVED, CANCELLED
 	}
 	
 	public enum AplyType {

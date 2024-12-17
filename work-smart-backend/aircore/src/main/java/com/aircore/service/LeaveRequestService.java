@@ -4,15 +4,19 @@ import java.time.LocalDate;
 import java.time.ZoneId;
 import java.time.temporal.ChronoUnit;
 import java.util.Date;
+import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import com.aircore.entity.LeaveRequest;
+import com.aircore.entity.Role;
 import com.aircore.entity.User;
 import com.aircore.repository.LeaveRequestRepository;
+import com.aircore.repository.RoleRepository;
 import com.aircore.repository.UserRepository;
 import com.aircore.request.LeaveRequestDTO;
 import com.aircore.response.LeaveRequestResponse;
@@ -31,6 +35,9 @@ public class LeaveRequestService {
 	@Autowired
 	private UserRepository userRepository;
 
+	@Autowired
+	private RoleRepository roleRepository;
+	
 	@Transactional
 	public LeaveRequest createLeaveRequest(LeaveRequestDTO leaveRequestDTO, Long userId) {
 		User user = userRepository.findById(userId).orElseThrow(() -> new RuntimeException("User not found"));
@@ -80,7 +87,11 @@ public class LeaveRequestService {
 	    if (!existingRequest.getUserId().equals(userId)) {
 	        throw new RuntimeException("Unauthorized action");
 	    }
-
+	    
+	    if(existingRequest.getLeaveStatus().equals(LeaveStatus.CANCELLED)) {
+	    	throw new RuntimeException("Leave Already cancelled can not update");
+	    }
+	    
 	    User user = userRepository.findById(userId)
 	            .orElseThrow(() -> new RuntimeException("User not found"));
 
@@ -140,16 +151,31 @@ public class LeaveRequestService {
 	    if (leaveRequestDTO.getApplyFor() != null) {
 	        existingRequest.setApplyType(AplyType.valueOf(leaveRequestDTO.getApplyFor()));
 	    }
+	    
+	    if(existingRequest.getLeaveStatus().equals(LeaveStatus.APPROVED)) {
+	    	existingRequest.setLeaveStatus(LeaveStatus.PENDING);
+	    }
 
 	    return leaveRequestRepository.save(existingRequest);
 	}
 	
 	public Page<LeaveRequestResponse> getFilteredLeaveRequests(String keyword, LocalDate startDate, LocalDate endDate,
-			LeaveType leaveType, LeaveStatus leaveStatus, Pageable pageable) {
+			LeaveType leaveType, LeaveStatus leaveStatus, Long userId, Pageable pageable) {
 
 		Date startDateFilter = (startDate != null) ? java.sql.Date.valueOf(startDate) : null;
 		Date endDateFilter = (endDate != null) ? java.sql.Date.valueOf(endDate) : null;
 
+		User user = userRepository.findById(userId)
+		            .orElseThrow(() -> new RuntimeException("User not found"));
+		 
+		Optional<Role> roleOPT = roleRepository.findById(user.getRole());
+		if(roleOPT.isPresent()) {
+			Role role = roleOPT.get();
+			if(role.getName().equals("MANAGER")) {
+//				return leaveRequestRepository.findFilteredLeaveRequests(keyword != null ? "%" + keyword + "%" : null,
+//						startDateFilter, endDateFilter, leaveType, leaveStatus, userId, pageable);
+			} 
+		}
 		return leaveRequestRepository.findFilteredLeaveRequests(keyword != null ? "%" + keyword + "%" : null,
 				startDateFilter, endDateFilter, leaveType, leaveStatus, pageable);
 	}
@@ -163,6 +189,12 @@ public class LeaveRequestService {
 	        throw new RuntimeException("Unauthorized action");
 	    }
 
+	    LocalDate today = LocalDate.now(); 
+	    LocalDate leaveStartDate = existingRequest.getStartDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
+	    if (leaveStartDate.isBefore(today)) {
+	        throw new RuntimeException("Cannot cancel leave for past dates");
+	    }
+	    
 	    User user = userRepository.findById(userId)
 	            .orElseThrow(() -> new RuntimeException("User not found"));
 
@@ -180,7 +212,77 @@ public class LeaveRequestService {
 	        userRepository.save(user);
 	    }
 
+	    existingRequest.setLeaveStatus(LeaveStatus.CANCELLED);
 	    leaveRequestRepository.delete(existingRequest);
 	}
+	
+
+    @Transactional
+    public void rejectLeaveRequest(Long leaveId, Long userId, String rejectReason) {
+    	LeaveRequest leaveRequest = leaveRequestRepository.findById(leaveId)
+                .orElseThrow(() -> new RuntimeException("Leave request not found"));
+    	
+    	leaveRequest.setLeaveStatus(LeaveStatus.REJECTED);
+        leaveRequest.setRejectReason(rejectReason);
+        leaveRequest.setUpdatedDate(new Date());
+        
+        User user = userRepository.findById(userId)
+	            .orElseThrow(() -> new RuntimeException("User not found"));
+
+	    if (LeaveType.PRIVILEGE_LEAVE.equals(leaveRequest.getLeaveType())) {
+	        long daysRequested = ChronoUnit.DAYS.between(
+	        		leaveRequest.getStartDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDate(),
+	        		leaveRequest.getEndDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDate()) + 1;
+
+	        if (AplyType.FIRST_HALF.equals(leaveRequest.getApplyType()) || AplyType.SECOND_HALF.equals(leaveRequest.getApplyType())) {
+	            user.setTotalLeave(user.getTotalLeave() + 0.5);
+	        } else {
+	            user.setTotalLeave(user.getTotalLeave() + daysRequested);
+	        }
+
+	        userRepository.save(user);
+	    }
+    
+        leaveRequestRepository.save(leaveRequest);
+    }
+
+	public void approveLeaveRequest(Long leaveRequestId, Long userId) {
+		LeaveRequest leaveRequest = leaveRequestRepository.findById(leaveRequestId)
+                .orElseThrow(() -> new RuntimeException("Leave request not found"));
+		
+		User approver = userRepository.findById(userId)
+	            .orElseThrow(() -> new RuntimeException("Approver User not found"));
+		
+		User requestedBy = userRepository.findById(leaveRequest.getUserId())
+	            .orElseThrow(() -> new RuntimeException("Requested User not found"));
+		
+		Optional<Role> roleOPT = roleRepository.findById(approver.getRole());
+		if(roleOPT.isPresent()) {
+			if(requestedBy.getTwoLevelLeaveApprove() != null && requestedBy.getTwoLevelLeaveApprove().equalsIgnoreCase("YES")) {
+				if(approver.getId() != requestedBy.getReporting_manager() && leaveRequest.getLeaveStatus().equals(LeaveStatus.PARTIALLY_APPROVED)) {
+					leaveRequest.setLeaveStatus(LeaveStatus.APPROVED);
+					leaveRequestRepository.save(leaveRequest);
+				} else if (approver.getId() == requestedBy.getReporting_manager()) {
+					leaveRequest.setLeaveStatus(LeaveStatus.PARTIALLY_APPROVED);
+					leaveRequestRepository.save(leaveRequest);
+				} else {
+					throw new RuntimeException("Leave Request is not partially approved");
+				}
+			} else {
+				leaveRequest.setLeaveStatus(LeaveStatus.APPROVED);
+			}
+		}
+	}
+
+	public Page<LeaveRequestResponse> getFilteredLeaveRequestsUser(String keyword, LocalDate startDate,
+			LocalDate endDate, LeaveType leaveType, LeaveStatus leaveStatus, Long userId, PageRequest pageable) {
+		
+		Date startDateFilter = (startDate != null) ? java.sql.Date.valueOf(startDate) : null;
+		Date endDateFilter = (endDate != null) ? java.sql.Date.valueOf(endDate) : null;
+
+		return leaveRequestRepository.findFilteredLeaveRequestsUsers(keyword != null ? "%" + keyword + "%" : null,
+				startDateFilter, endDateFilter, leaveType, leaveStatus, userId, pageable);
+	}
+	
 
 }

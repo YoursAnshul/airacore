@@ -6,6 +6,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -264,6 +265,13 @@ public class UserService {
     }
     
     public List<UserDropdownResponse> getActiveUsersForDropdown() {
+        Optional<Role> roleOPT = roleRepository.findByNameAndStatus("MANAGER", "ACTIVE");
+        if (roleOPT.isPresent()) {
+            Role role = roleOPT.get();
+            
+        } else {
+            throw new RuntimeException("Role not found with name: " + "MANAGER" + " and status: ACTIVE");
+        }
         List<User> activeUsers = userRepository.findByStatusAndPosition(Status.ACTIVE, "MANAGER");
         return activeUsers.stream()
                 .map(user -> new UserDropdownResponse(user.getId(), user.getFirstName() + " " + user.getLastName()))

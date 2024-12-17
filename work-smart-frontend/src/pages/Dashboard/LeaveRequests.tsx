@@ -22,6 +22,7 @@ import { MdLockReset, MdOutlineModeEditOutline } from "react-icons/md";
 import PageTitle from "../../components/Common/PageTitle";
 import DeleteModal from "../../components/Common/DeleteModal/DeleteModal";
 import CancelLeave from "../../components/Common/DeleteModal/Cancel Leave Request";
+import { MdCancel } from "react-icons/md";
 
 const headers: GridHeader[] = [
   {
@@ -100,11 +101,13 @@ const Dashboard = () => {
   };
 
   useEffect(() => {
+    console.log(RolePermission)
     if (
       RolePermission &&
       RolePermission?.rolePermission &&
       !HelperService.isEmptyObject(RolePermission?.rolePermission)
     ) {
+      console.log(RolePermission)
       if (
         RolePermission?.rolePermission?.menus &&
         RolePermission?.rolePermission?.menus.length > 0
@@ -112,6 +115,7 @@ const Dashboard = () => {
         const data = RolePermission?.rolePermission?.menus.find(
           (item: any) => item.name == "Dashboard"
         );
+        console.log(data);
         if (data && data.isRead) {
           setPermission(data);
           permissionCompute.current = data;
@@ -307,7 +311,7 @@ const Dashboard = () => {
     pageCount.current = page;
     setShowLoader(true);
     WebService.getAPI({
-      action: `api/leave-requests/requests/${page}?keyword=${keyword ? keyword : ""
+      action: `api/leave-requests/user/requests/${userInfoData?.user_info?.id}/${page}?keyword=${keyword ? keyword : ""
         }&type=${"true"}&date_from=${startDate ? startDate : ""}&date_to=${endDate ? endDate : ""
         }`,
       body: null,
@@ -419,7 +423,7 @@ const Dashboard = () => {
   const actionList = (value: number, type: string, data: any) => {
     return (
       <div className="action-btns">
-        <button
+        < button
           type="button"
           onClick={() => handleOnEdit(data)}
           className="btn btn-edit"
@@ -438,9 +442,9 @@ const Dashboard = () => {
           data-placement="top"
           title="Delete"
         >
-          <FaRegTrashAlt className="icon" />
+          <MdCancel className="icon" />
         </button>
-      </div>
+      </div >
     );
   };
 
@@ -469,7 +473,7 @@ const Dashboard = () => {
     return (
       <div>
         <div>{type === "PRIVILEGE_LEAVE" ? "Privilege Leave" : 'Unpaid Leave'}</div>
-        <div style={{fontSize: "11px", color: "#847d7d", textWrap: "nowrap"}}>Requested On {HelperService.getFormattedDatebyText(end)}
+        <div style={{ fontSize: "11px", color: "#847d7d", textWrap: "nowrap" }}>Requested On {HelperService.getFormattedDatebyText(end)}
         </div>
       </div>
     );

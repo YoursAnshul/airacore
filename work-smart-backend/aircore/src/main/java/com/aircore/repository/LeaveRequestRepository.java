@@ -42,8 +42,63 @@ public interface LeaveRequestRepository extends JpaRepository<LeaveRequest, Long
 	        @Param("leaveType") LeaveType leaveType,
 	        @Param("leaveStatus") LeaveStatus leaveStatus,
 	        Pageable pageable);
+	
+	@Query("SELECT new com.aircore.response.LeaveRequestResponse(" +
+	        "lr.id, " +
+	        "CONCAT(u.firstName, ' ', u.lastName) AS username, " +
+	        "lr.startDate, " +
+	        "lr.endDate, " +
+	        "lr.leaveType, " +
+	        "lr.leaveStatus, " +
+	        "CONCAT(a.firstName, ' ', a.lastName) AS approvedByName, " +
+	        "lr.description, lr.createDate, lr.updatedDate, lr.rejectReason, lr.applyType) " +
+	        "FROM LeaveRequest lr " +
+	        "JOIN User u ON lr.userId = u.id " +
+	        "LEFT JOIN User a ON lr.approvedBy = a.id " +
+	        "WHERE (:keyword IS NULL OR LOWER(lr.description) LIKE LOWER(:keyword)) " +
+	        "AND (:startDate IS NULL OR lr.startDate >= :startDate) " +
+	        "AND (:endDate IS NULL OR lr.endDate <= :endDate) " +
+	        "AND (:leaveType IS NULL OR lr.leaveType = :leaveType) " +
+	        "AND (:leaveStatus IS NULL OR lr.leaveStatus = :leaveStatus) " +
+	        "AND (:userId IS NULL OR u.reporting_manager = :userId) " +
+	        "ORDER BY lr.id DESC")
+	Page<LeaveRequestResponse> findFilteredLeaveRequests(
+	        @Param("keyword") String keyword,
+	        @Param("startDate") Date startDate,
+	        @Param("endDate") Date endDate,
+	        @Param("leaveType") LeaveType leaveType,
+	        @Param("leaveStatus") LeaveStatus leaveStatus,
+	        @Param("userId") Long userId,
+	        Pageable pageable);
 
 
+	@Query("SELECT new com.aircore.response.LeaveRequestResponse(" +
+	        "lr.id, " +
+	        "CONCAT(u.firstName, ' ', u.lastName) AS username, " +
+	        "lr.startDate, " +
+	        "lr.endDate, " +
+	        "lr.leaveType, " +
+	        "lr.leaveStatus, " +
+	        "CONCAT(a.firstName, ' ', a.lastName) AS approvedByName, " +
+	        "lr.description, lr.createDate, lr.updatedDate, lr.rejectReason, lr.applyType) " +
+	        "FROM LeaveRequest lr " +
+	        "JOIN User u ON lr.userId = u.id " +
+	        "LEFT JOIN User a ON lr.approvedBy = a.id " +
+	        "WHERE (:keyword IS NULL OR LOWER(lr.description) LIKE LOWER(:keyword)) " +
+	        "AND (:startDate IS NULL OR lr.startDate >= :startDate) " +
+	        "AND (:endDate IS NULL OR lr.endDate <= :endDate) " +
+	        "AND (:leaveType IS NULL OR lr.leaveType = :leaveType) " +
+	        "AND (:leaveStatus IS NULL OR lr.leaveStatus = :leaveStatus) " +
+	        "AND (:userId IS NULL OR lr.userId = :userId) " +
+	        "ORDER BY lr.id DESC")
+	Page<LeaveRequestResponse> findFilteredLeaveRequestsUsers(
+	        @Param("keyword") String keyword,
+	        @Param("startDate") Date startDate,
+	        @Param("endDate") Date endDate,
+	        @Param("leaveType") LeaveType leaveType,
+	        @Param("leaveStatus") LeaveStatus leaveStatus,
+	        @Param("userId") Long userId,
+	        Pageable pageable);
 	
 }
 
