@@ -261,7 +261,8 @@ public class LeaveRequestService {
 		if (roleOPT.isPresent()) {
 			if (requestedBy.getTwoLevelLeaveApprove() != null
 					&& requestedBy.getTwoLevelLeaveApprove().equalsIgnoreCase("YES")) {
-				if (roleOPT.isPresent() && roleOPT.get().getName() == "ADMIN") {
+				System.out.println(roleOPT.get().getName());
+				if (roleOPT.isPresent() && roleOPT.get().getName().equals("ADMIN")) {
 					leaveRequest.setLeaveStatus(LeaveStatus.APPROVED);
 					leaveRequestRepository.save(leaveRequest);
 				} else if (approver.getId() != requestedBy.getReporting_manager()
