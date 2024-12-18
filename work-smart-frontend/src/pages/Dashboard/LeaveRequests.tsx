@@ -603,7 +603,7 @@ const Dashboard = () => {
         <Offcanvas.Body className="form-style d-flex flex-column">
           <form className="mb-3 flex-grow-1" onSubmit={handleSubmit(requestLeave)}>
             {/* Date Selection */}
-            <div className="d-flex justify-content-between align-items-center">
+            <div className="d-flex justify-content-between align-items-center gap-2">
               <div className="col-6">
                 <label>From</label>
                 <DatePicker
