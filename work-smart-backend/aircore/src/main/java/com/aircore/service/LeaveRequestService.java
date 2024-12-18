@@ -37,7 +37,7 @@ public class LeaveRequestService {
 
 	@Autowired
 	private RoleRepository roleRepository;
-	
+
 	@Transactional
 	public LeaveRequest createLeaveRequest(LeaveRequestDTO leaveRequestDTO, Long userId) {
 		User user = userRepository.findById(userId).orElseThrow(() -> new RuntimeException("User not found"));
@@ -80,98 +80,100 @@ public class LeaveRequestService {
 
 	@Transactional
 	public LeaveRequest updateLeaveRequest(Long leaveRequestId, LeaveRequestDTO leaveRequestDTO, Long userId) {
-	    LeaveRequest existingRequest = leaveRequestRepository.findById(leaveRequestId)
-	            .orElseThrow(() -> new RuntimeException("Leave request not found"));
+		LeaveRequest existingRequest = leaveRequestRepository.findById(leaveRequestId)
+				.orElseThrow(() -> new RuntimeException("Leave request not found"));
 
-	    if (!existingRequest.getUserId().equals(userId)) {
-	        throw new RuntimeException("Unauthorized action");
-	    }
-	    
-	    if(existingRequest.getLeaveStatus().equals(LeaveStatus.CANCELLED)) {
-	    	throw new RuntimeException("Leave Already cancelled can not update");
-	    }
-	    
-	    LocalDate today = LocalDate.now(); 
-	    LocalDate leaveStartDate = existingRequest.getStartDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
-	    if (leaveStartDate.isBefore(today)) {
-	        throw new RuntimeException("Cannot Update leave for past dates");
-	    }
-	    
-	    User user = userRepository.findById(userId)
-	            .orElseThrow(() -> new RuntimeException("User not found"));
+		if (!existingRequest.getUserId().equals(userId)) {
+			throw new RuntimeException("Unauthorized action");
+		}
 
-	    long previousDaysRequested = existingRequest.getAppliedDays();
-	    long newDaysRequested = leaveRequestDTO.getAppliedDays();
+		if (existingRequest.getLeaveStatus().equals(LeaveStatus.CANCELLED)) {
+			throw new RuntimeException("Leave Already cancelled can not update");
+		}
 
-	    double leaveBalanceAdjustment = 0;
+		if (existingRequest.getLeaveStatus().equals(LeaveStatus.REJECTED)) {
+			throw new RuntimeException("Leave Already rejected can not update");
+		}
 
-	    if (LeaveType.PRIVILEGE_LEAVE.name().equals(leaveRequestDTO.getLeaveType())) {
-	        if (leaveRequestDTO.getApplyFor() != null) {
-	            if (AplyType.FULL_DAY.name().equals(leaveRequestDTO.getApplyFor())) {
-	                if (AplyType.FIRST_HALF.equals(existingRequest.getApplyType()) || AplyType.SECOND_HALF.equals(existingRequest.getApplyType())) {
-	                    leaveBalanceAdjustment = (newDaysRequested - previousDaysRequested) + 0.5;
-	                } else {
-	                    leaveBalanceAdjustment = newDaysRequested - previousDaysRequested;
-	                }
-	            } else if (AplyType.FIRST_HALF.name().equals(leaveRequestDTO.getApplyFor()) || AplyType.SECOND_HALF.name().equals(leaveRequestDTO.getApplyFor())) {
-	                if (AplyType.FULL_DAY.equals(existingRequest.getApplyType())) {
-	                    leaveBalanceAdjustment = (newDaysRequested - previousDaysRequested) - 0.5;
-	                } else if (newDaysRequested < previousDaysRequested) {
-	                    leaveBalanceAdjustment = -1 * (previousDaysRequested - newDaysRequested) - 0.5;
-	                } else {
-	                    leaveBalanceAdjustment = newDaysRequested - previousDaysRequested;
-	                }
-	            }
+		LocalDate today = LocalDate.now();
+		LocalDate leaveStartDate = existingRequest.getStartDate().toInstant().atZone(ZoneId.systemDefault())
+				.toLocalDate();
+		if (leaveStartDate.isBefore(today)) {
+			throw new RuntimeException("Cannot Update leave for past dates");
+		}
 
-	            if (leaveBalanceAdjustment > 0 && user.getTotalLeave() < leaveBalanceAdjustment) {
-	                throw new RuntimeException("Insufficient leave balance to update the request");
-	            }
+		User user = userRepository.findById(userId).orElseThrow(() -> new RuntimeException("User not found"));
 
-	            user.setTotalLeave(user.getTotalLeave() - leaveBalanceAdjustment);
-	            userRepository.save(user);
+		long previousDaysRequested = existingRequest.getAppliedDays();
+		long newDaysRequested = leaveRequestDTO.getAppliedDays();
 
-	        } else {
-	            leaveBalanceAdjustment = newDaysRequested - previousDaysRequested;
+		double leaveBalanceAdjustment = 0;
 
-	            if (leaveBalanceAdjustment > 0 && user.getTotalLeave() < leaveBalanceAdjustment) {
-	                throw new RuntimeException("Insufficient leave balance to update the request");
-	            }
+		if (LeaveType.PRIVILEGE_LEAVE.name().equals(leaveRequestDTO.getLeaveType())) {
+			if (leaveRequestDTO.getApplyFor() != null) {
+				if (AplyType.FULL_DAY.name().equals(leaveRequestDTO.getApplyFor())) {
+					if (AplyType.FIRST_HALF.equals(existingRequest.getApplyType())
+							|| AplyType.SECOND_HALF.equals(existingRequest.getApplyType())) {
+						leaveBalanceAdjustment = (newDaysRequested - previousDaysRequested) + 0.5;
+					} else {
+						leaveBalanceAdjustment = newDaysRequested - previousDaysRequested;
+					}
+				} else if (AplyType.FIRST_HALF.name().equals(leaveRequestDTO.getApplyFor())
+						|| AplyType.SECOND_HALF.name().equals(leaveRequestDTO.getApplyFor())) {
+					if (AplyType.FULL_DAY.equals(existingRequest.getApplyType())) {
+						leaveBalanceAdjustment = (newDaysRequested - previousDaysRequested) - 0.5;
+					} else if (newDaysRequested < previousDaysRequested) {
+						leaveBalanceAdjustment = -1 * (previousDaysRequested - newDaysRequested) - 0.5;
+					} else {
+						leaveBalanceAdjustment = newDaysRequested - previousDaysRequested;
+					}
+				}
 
-	            user.setTotalLeave(user.getTotalLeave() - leaveBalanceAdjustment);
-	            userRepository.save(user);
-	        }
-	    }
+				if (leaveBalanceAdjustment > 0 && user.getTotalLeave() < leaveBalanceAdjustment) {
+					throw new RuntimeException("Insufficient leave balance to update the request");
+				}
 
-	    // Update existing leave request details
-	    existingRequest.setStartDate(leaveRequestDTO.getFromDate());
-	    existingRequest.setEndDate(leaveRequestDTO.getToDate());
-	    existingRequest.setLeaveType(LeaveType.valueOf(leaveRequestDTO.getLeaveType()));
-	    existingRequest.setDescription(leaveRequestDTO.getNote());
-        existingRequest.setAppliedDays(leaveRequestDTO.getAppliedDays());
-	    if (leaveRequestDTO.getApplyFor() != null) {
-	        existingRequest.setApplyType(AplyType.valueOf(leaveRequestDTO.getApplyFor()));
-	    }
-	    
-	    if(existingRequest.getLeaveStatus().equals(LeaveStatus.APPROVED)) {
-	    	existingRequest.setLeaveStatus(LeaveStatus.PENDING);
-	    }
+				user.setTotalLeave(user.getTotalLeave() - leaveBalanceAdjustment);
+				userRepository.save(user);
 
-	    return leaveRequestRepository.save(existingRequest);
+			} else {
+				leaveBalanceAdjustment = newDaysRequested - previousDaysRequested;
+
+				if (leaveBalanceAdjustment > 0 && user.getTotalLeave() < leaveBalanceAdjustment) {
+					throw new RuntimeException("Insufficient leave balance to update the request");
+				}
+
+				user.setTotalLeave(user.getTotalLeave() - leaveBalanceAdjustment);
+				userRepository.save(user);
+			}
+		}
+
+		// Update existing leave request details
+		existingRequest.setStartDate(leaveRequestDTO.getFromDate());
+		existingRequest.setEndDate(leaveRequestDTO.getToDate());
+		existingRequest.setLeaveType(LeaveType.valueOf(leaveRequestDTO.getLeaveType()));
+		existingRequest.setDescription(leaveRequestDTO.getNote());
+		existingRequest.setAppliedDays(leaveRequestDTO.getAppliedDays());
+		if (leaveRequestDTO.getApplyFor() != null) {
+			existingRequest.setApplyType(AplyType.valueOf(leaveRequestDTO.getApplyFor()));
+		}
+		existingRequest.setLeaveStatus(LeaveStatus.PENDING);
+
+		return leaveRequestRepository.save(existingRequest);
 	}
-	
+
 	public Page<LeaveRequestResponse> getFilteredLeaveRequests(String keyword, LocalDate startDate, LocalDate endDate,
 			LeaveType leaveType, LeaveStatus leaveStatus, Long userId, Pageable pageable) {
 
 		Date startDateFilter = (startDate != null) ? java.sql.Date.valueOf(startDate) : null;
 		Date endDateFilter = (endDate != null) ? java.sql.Date.valueOf(endDate) : null;
 
-		User user = userRepository.findById(userId)
-		            .orElseThrow(() -> new RuntimeException("User not found"));
-		 
+		User user = userRepository.findById(userId).orElseThrow(() -> new RuntimeException("User not found"));
+
 		Optional<Role> roleOPT = roleRepository.findById(user.getRole());
-		if(roleOPT.isPresent()) {
+		if (roleOPT.isPresent()) {
 			Role role = roleOPT.get();
-			if(role.getName().equals("MANAGER")) {
+			if (role.getName().equals("MANAGER")) {
 				return leaveRequestRepository.findFilteredLeaveRequests(keyword != null ? "%" + keyword + "%" : null,
 						startDateFilter, endDateFilter, leaveType, leaveStatus, userId, pageable);
 			}
@@ -179,85 +181,91 @@ public class LeaveRequestService {
 		return leaveRequestRepository.findFilteredLeaveRequests(keyword != null ? "%" + keyword + "%" : null,
 				startDateFilter, endDateFilter, leaveType, leaveStatus, pageable);
 	}
-	
+
 	@Transactional
 	public void cancelLeaveRequest(Long leaveRequestId, Long userId) {
-	    LeaveRequest existingRequest = leaveRequestRepository.findById(leaveRequestId)
-	            .orElseThrow(() -> new RuntimeException("Leave request not found"));
+		LeaveRequest existingRequest = leaveRequestRepository.findById(leaveRequestId)
+				.orElseThrow(() -> new RuntimeException("Leave request not found"));
 
-	    if (!existingRequest.getUserId().equals(userId)) {
-	        throw new RuntimeException("Unauthorized action");
-	    }
+		if (!existingRequest.getUserId().equals(userId)) {
+			throw new RuntimeException("Unauthorized action");
+		}
 
-	    LocalDate today = LocalDate.now(); 
-	    LocalDate leaveStartDate = existingRequest.getStartDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
-	    if (leaveStartDate.isBefore(today)) {
-	        throw new RuntimeException("Cannot cancel leave for past dates");
-	    }
-	    
-	    User user = userRepository.findById(userId)
-	            .orElseThrow(() -> new RuntimeException("User not found"));
+		LocalDate today = LocalDate.now();
+		LocalDate leaveStartDate = existingRequest.getStartDate().toInstant().atZone(ZoneId.systemDefault())
+				.toLocalDate();
+		if (leaveStartDate.isBefore(today)) {
+			throw new RuntimeException("Cannot cancel leave for past dates");
+		}
 
-	    if (LeaveType.PRIVILEGE_LEAVE.equals(existingRequest.getLeaveType())) {
-	        long daysRequested = existingRequest.getAppliedDays();
+		User user = userRepository.findById(userId).orElseThrow(() -> new RuntimeException("User not found"));
 
-	        if (AplyType.FIRST_HALF.equals(existingRequest.getApplyType()) || AplyType.SECOND_HALF.equals(existingRequest.getApplyType())) {
-	            user.setTotalLeave(user.getTotalLeave() + 0.5);
-	        } else {
-	            user.setTotalLeave(user.getTotalLeave() + daysRequested);
-	        }
+		if (LeaveType.PRIVILEGE_LEAVE.equals(existingRequest.getLeaveType())) {
+			long daysRequested = existingRequest.getAppliedDays();
 
-	        userRepository.save(user);
-	    }
+			if (AplyType.FIRST_HALF.equals(existingRequest.getApplyType())
+					|| AplyType.SECOND_HALF.equals(existingRequest.getApplyType())) {
+				user.setTotalLeave(user.getTotalLeave() + 0.5);
+			} else {
+				user.setTotalLeave(user.getTotalLeave() + daysRequested);
+			}
 
-	    existingRequest.setLeaveStatus(LeaveStatus.CANCELLED);
-	    leaveRequestRepository.save(existingRequest);
+			userRepository.save(user);
+		}
+
+		existingRequest.setLeaveStatus(LeaveStatus.CANCELLED);
+		leaveRequestRepository.save(existingRequest);
 	}
-	
 
-    @Transactional
-    public void rejectLeaveRequest(Long leaveId, Long userId, String rejectReason) {
-    	LeaveRequest leaveRequest = leaveRequestRepository.findById(leaveId)
-                .orElseThrow(() -> new RuntimeException("Leave request not found"));
-    	
-    	leaveRequest.setLeaveStatus(LeaveStatus.REJECTED);
-        leaveRequest.setRejectReason(rejectReason);
-        leaveRequest.setUpdatedDate(new Date());
-        leaveRequest.setApprovedBy(userId);
-        
-        User user = userRepository.findById(leaveRequest.getUserId())
-	            .orElseThrow(() -> new RuntimeException("User not found"));
+	@Transactional
+	public void rejectLeaveRequest(Long leaveId, Long userId, String rejectReason) {
+		LeaveRequest leaveRequest = leaveRequestRepository.findById(leaveId)
+				.orElseThrow(() -> new RuntimeException("Leave request not found"));
 
-	    if (LeaveType.PRIVILEGE_LEAVE.equals(leaveRequest.getLeaveType())) {
-	        long daysRequested = leaveRequest.getAppliedDays();
+		leaveRequest.setLeaveStatus(LeaveStatus.REJECTED);
+		leaveRequest.setRejectReason(rejectReason);
+		leaveRequest.setUpdatedDate(new Date());
+		leaveRequest.setApprovedBy(userId);
 
-	        if (AplyType.FIRST_HALF.equals(leaveRequest.getApplyType()) || AplyType.SECOND_HALF.equals(leaveRequest.getApplyType())) {
-	            user.setTotalLeave(user.getTotalLeave() + 0.5);
-	        } else {
-	            user.setTotalLeave(user.getTotalLeave() + daysRequested);
-	        }
+		User user = userRepository.findById(leaveRequest.getUserId())
+				.orElseThrow(() -> new RuntimeException("User not found"));
 
-	        userRepository.save(user);
-	    }
-    
-        leaveRequestRepository.save(leaveRequest);
-    }
+		if (LeaveType.PRIVILEGE_LEAVE.equals(leaveRequest.getLeaveType())) {
+			long daysRequested = leaveRequest.getAppliedDays();
+
+			if (AplyType.FIRST_HALF.equals(leaveRequest.getApplyType())
+					|| AplyType.SECOND_HALF.equals(leaveRequest.getApplyType())) {
+				user.setTotalLeave(user.getTotalLeave() + 0.5);
+			} else {
+				user.setTotalLeave(user.getTotalLeave() + daysRequested);
+			}
+
+			userRepository.save(user);
+		}
+
+		leaveRequestRepository.save(leaveRequest);
+	}
 
 	public void approveLeaveRequest(Long leaveRequestId, Long userId) {
 		LeaveRequest leaveRequest = leaveRequestRepository.findById(leaveRequestId)
-                .orElseThrow(() -> new RuntimeException("Leave request not found"));
-		
+				.orElseThrow(() -> new RuntimeException("Leave request not found"));
+
 		User approver = userRepository.findById(userId)
-	            .orElseThrow(() -> new RuntimeException("Approver User not found"));
-		
+				.orElseThrow(() -> new RuntimeException("Approver User not found"));
+
 		User requestedBy = userRepository.findById(leaveRequest.getUserId())
-	            .orElseThrow(() -> new RuntimeException("Requested User not found"));
-		
+				.orElseThrow(() -> new RuntimeException("Requested User not found"));
+
 		leaveRequest.setApprovedBy(userId);
 		Optional<Role> roleOPT = roleRepository.findById(approver.getRole());
-		if(roleOPT.isPresent()) {
-			if(requestedBy.getTwoLevelLeaveApprove() != null && requestedBy.getTwoLevelLeaveApprove().equalsIgnoreCase("YES")) {
-				if(approver.getId() != requestedBy.getReporting_manager() && leaveRequest.getLeaveStatus().equals(LeaveStatus.PARTIALLY_APPROVED)) {
+		if (roleOPT.isPresent()) {
+			if (requestedBy.getTwoLevelLeaveApprove() != null
+					&& requestedBy.getTwoLevelLeaveApprove().equalsIgnoreCase("YES")) {
+				if (roleOPT.isPresent() && roleOPT.get().getName() == "ADMIN") {
+					leaveRequest.setLeaveStatus(LeaveStatus.APPROVED);
+					leaveRequestRepository.save(leaveRequest);
+				} else if (approver.getId() != requestedBy.getReporting_manager()
+						&& leaveRequest.getLeaveStatus().equals(LeaveStatus.PARTIALLY_APPROVED)) {
 					leaveRequest.setLeaveStatus(LeaveStatus.APPROVED);
 					leaveRequestRepository.save(leaveRequest);
 				} else if (approver.getId() == requestedBy.getReporting_manager()) {
@@ -274,13 +282,12 @@ public class LeaveRequestService {
 
 	public Page<LeaveRequestResponse> getFilteredLeaveRequestsUser(String keyword, LocalDate startDate,
 			LocalDate endDate, LeaveType leaveType, LeaveStatus leaveStatus, Long userId, PageRequest pageable) {
-		
+
 		Date startDateFilter = (startDate != null) ? java.sql.Date.valueOf(startDate) : null;
 		Date endDateFilter = (endDate != null) ? java.sql.Date.valueOf(endDate) : null;
 
 		return leaveRequestRepository.findFilteredLeaveRequestsUsers(keyword != null ? "%" + keyword + "%" : null,
 				startDateFilter, endDateFilter, leaveType, leaveStatus, userId, pageable);
 	}
-	
 
 }

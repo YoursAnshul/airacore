@@ -25,6 +25,6 @@ public class LeaveRequestResponse {
     private Date createdDate;
     private Date updateDate;
     private String rejectReason;
-    private AplyType applyType;
+    private AplyType applyFor;
 }
 

@@ -97,6 +97,7 @@ const AdminUserManagement = () => {
   const [twoLevelLeaveApproveOptions, setTwoLevelLeaveApproveOptions] = useState<any[]>([{id: "YES", value: "Yes"}, {id: "NO", value: "No"}]);
   const [isShowNewPassword, setIsShowNewPassword] = useState<boolean>(false);
   const [page, setPage] = useState(1);
+  const [ adminId, setAdminId ] = useState(0);
 
   useEffect(() => {
     if (
@@ -164,8 +165,10 @@ const AdminUserManagement = () => {
         let temp: any[] = [];
         for (var i in res) {
           temp.push({ id: res[i].id, value: res[i].name });
+          if(res[i].name == "ADMIN"){
+            setAdminId(res[i].id);
+          }
         }
-
         setAllRoleList(temp);
       })
       .catch(() => { });
@@ -187,7 +190,11 @@ const AdminUserManagement = () => {
 
   const addUser = (data: any) => {
     if (data.id) {
-      const { createdDate, ...dataToUpdate } = data;
+      var { createdDate, ...dataToUpdate } = data;
+      if(adminId == data.role){
+        const { reporting_manager, ...updatedData } = dataToUpdate;
+        dataToUpdate = updatedData;
+      }
       WebService.putAPI({
         action: "api/user/update/user/" + data.id,
         body: dataToUpdate,
@@ -203,6 +210,10 @@ const AdminUserManagement = () => {
           toast.error("User Updatation Failed try again.");
         });
     } else {
+      if(adminId == data.role){
+        const { reporting_manager, ...updatedData } = data;
+        data = updatedData;
+      }
       WebService.postAPI({ action: "api/auth/signup", body: data, id: "add_country" })
         .then((res: any) => {
           reset({});
@@ -615,7 +626,7 @@ const AdminUserManagement = () => {
                 control={control}
                 name="role"
                 rules={{
-                  required: true, // Update to `true` if the role is required
+                  required: true,
                 }}
                 render={({ field }) => (
                   <Form.Group className="mb-1 mt-3">
@@ -625,7 +636,7 @@ const AdminUserManagement = () => {
                       {...field}
                       className="form-select"
                     >
-                      <option value="">Select Role</option> {/* Default placeholder */}
+                      <option value="">Select Role</option>
                       {isAllRoleList.map((role: { id: number; value: string }) => (
                         <option key={role.id} value={role.id}>
                           {role.value}
@@ -657,7 +668,7 @@ const AdminUserManagement = () => {
                       {...field}
                       className="form-select"
                     >
-                      <option value="">Select Two Level Leave Varification</option> {/* Default placeholder */}
+                      <option value="">Select Two Level Leave Varification</option>
                       {twoLevelLeaveApproveOptions.map((role: { id: string; value: string }) => (
                         <option key={role.id} value={role.id}>
                           {role.value}
@@ -670,6 +681,7 @@ const AdminUserManagement = () => {
             </Col>
 
             <Col lg={12}>
+            {watchAllFields.role != adminId && (
               <Controller
                 control={control}
                 name="reporting_manager"
@@ -694,6 +706,7 @@ const AdminUserManagement = () => {
                   </Form.Group>
                 )}
               />
+            )}
             </Col>
 
             <Button
