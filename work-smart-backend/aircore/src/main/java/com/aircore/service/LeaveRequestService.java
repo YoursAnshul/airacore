@@ -42,9 +42,7 @@ public class LeaveRequestService {
 	public LeaveRequest createLeaveRequest(LeaveRequestDTO leaveRequestDTO, Long userId) {
 		User user = userRepository.findById(userId).orElseThrow(() -> new RuntimeException("User not found"));
 
-		long daysRequested = ChronoUnit.DAYS.between(
-				leaveRequestDTO.getFromDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDate(),
-				leaveRequestDTO.getToDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDate()) + 1;
+		long daysRequested = leaveRequestDTO.getAppliedDays();
 
 		LeaveRequest leaveRequest = new LeaveRequest();
 		if (LeaveType.PRIVILEGE_LEAVE.name().equals(leaveRequestDTO.getLeaveType())) {
@@ -71,6 +69,7 @@ public class LeaveRequestService {
 		leaveRequest.setUserId(userId);
 		leaveRequest.setStartDate(leaveRequestDTO.getFromDate());
 		leaveRequest.setEndDate(leaveRequestDTO.getToDate());
+		leaveRequest.setAppliedDays(leaveRequestDTO.getAppliedDays());
 		leaveRequest.setLeaveType(LeaveType.valueOf(leaveRequestDTO.getLeaveType()));
 		leaveRequest.setDescription(leaveRequestDTO.getNote());
 
@@ -92,16 +91,17 @@ public class LeaveRequestService {
 	    	throw new RuntimeException("Leave Already cancelled can not update");
 	    }
 	    
+	    LocalDate today = LocalDate.now(); 
+	    LocalDate leaveStartDate = existingRequest.getStartDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
+	    if (leaveStartDate.isBefore(today)) {
+	        throw new RuntimeException("Cannot Update leave for past dates");
+	    }
+	    
 	    User user = userRepository.findById(userId)
 	            .orElseThrow(() -> new RuntimeException("User not found"));
 
-	    long previousDaysRequested = ChronoUnit.DAYS.between(
-	            existingRequest.getStartDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDate(),
-	            existingRequest.getEndDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDate()) + 1;
-
-	    long newDaysRequested = ChronoUnit.DAYS.between(
-	            leaveRequestDTO.getFromDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDate(),
-	            leaveRequestDTO.getToDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDate()) + 1;
+	    long previousDaysRequested = existingRequest.getAppliedDays();
+	    long newDaysRequested = leaveRequestDTO.getAppliedDays();
 
 	    double leaveBalanceAdjustment = 0;
 
@@ -147,7 +147,7 @@ public class LeaveRequestService {
 	    existingRequest.setEndDate(leaveRequestDTO.getToDate());
 	    existingRequest.setLeaveType(LeaveType.valueOf(leaveRequestDTO.getLeaveType()));
 	    existingRequest.setDescription(leaveRequestDTO.getNote());
-
+        existingRequest.setAppliedDays(leaveRequestDTO.getAppliedDays());
 	    if (leaveRequestDTO.getApplyFor() != null) {
 	        existingRequest.setApplyType(AplyType.valueOf(leaveRequestDTO.getApplyFor()));
 	    }
@@ -172,9 +172,9 @@ public class LeaveRequestService {
 		if(roleOPT.isPresent()) {
 			Role role = roleOPT.get();
 			if(role.getName().equals("MANAGER")) {
-//				return leaveRequestRepository.findFilteredLeaveRequests(keyword != null ? "%" + keyword + "%" : null,
-//						startDateFilter, endDateFilter, leaveType, leaveStatus, userId, pageable);
-			} 
+				return leaveRequestRepository.findFilteredLeaveRequests(keyword != null ? "%" + keyword + "%" : null,
+						startDateFilter, endDateFilter, leaveType, leaveStatus, userId, pageable);
+			}
 		}
 		return leaveRequestRepository.findFilteredLeaveRequests(keyword != null ? "%" + keyword + "%" : null,
 				startDateFilter, endDateFilter, leaveType, leaveStatus, pageable);
@@ -199,9 +199,7 @@ public class LeaveRequestService {
 	            .orElseThrow(() -> new RuntimeException("User not found"));
 
 	    if (LeaveType.PRIVILEGE_LEAVE.equals(existingRequest.getLeaveType())) {
-	        long daysRequested = ChronoUnit.DAYS.between(
-	                existingRequest.getStartDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDate(),
-	                existingRequest.getEndDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDate()) + 1;
+	        long daysRequested = existingRequest.getAppliedDays();
 
 	        if (AplyType.FIRST_HALF.equals(existingRequest.getApplyType()) || AplyType.SECOND_HALF.equals(existingRequest.getApplyType())) {
 	            user.setTotalLeave(user.getTotalLeave() + 0.5);
@@ -213,7 +211,7 @@ public class LeaveRequestService {
 	    }
 
 	    existingRequest.setLeaveStatus(LeaveStatus.CANCELLED);
-	    leaveRequestRepository.delete(existingRequest);
+	    leaveRequestRepository.save(existingRequest);
 	}
 	
 
@@ -225,14 +223,13 @@ public class LeaveRequestService {
     	leaveRequest.setLeaveStatus(LeaveStatus.REJECTED);
         leaveRequest.setRejectReason(rejectReason);
         leaveRequest.setUpdatedDate(new Date());
+        leaveRequest.setApprovedBy(userId);
         
-        User user = userRepository.findById(userId)
+        User user = userRepository.findById(leaveRequest.getUserId())
 	            .orElseThrow(() -> new RuntimeException("User not found"));
 
 	    if (LeaveType.PRIVILEGE_LEAVE.equals(leaveRequest.getLeaveType())) {
-	        long daysRequested = ChronoUnit.DAYS.between(
-	        		leaveRequest.getStartDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDate(),
-	        		leaveRequest.getEndDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDate()) + 1;
+	        long daysRequested = leaveRequest.getAppliedDays();
 
 	        if (AplyType.FIRST_HALF.equals(leaveRequest.getApplyType()) || AplyType.SECOND_HALF.equals(leaveRequest.getApplyType())) {
 	            user.setTotalLeave(user.getTotalLeave() + 0.5);
@@ -256,6 +253,7 @@ public class LeaveRequestService {
 		User requestedBy = userRepository.findById(leaveRequest.getUserId())
 	            .orElseThrow(() -> new RuntimeException("Requested User not found"));
 		
+		leaveRequest.setApprovedBy(userId);
 		Optional<Role> roleOPT = roleRepository.findById(approver.getRole());
 		if(roleOPT.isPresent()) {
 			if(requestedBy.getTwoLevelLeaveApprove() != null && requestedBy.getTwoLevelLeaveApprove().equalsIgnoreCase("YES")) {

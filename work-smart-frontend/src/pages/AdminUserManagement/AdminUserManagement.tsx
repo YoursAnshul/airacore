@@ -95,7 +95,6 @@ const AdminUserManagement = () => {
   const [isAllRoleList, setAllRoleList] = useState<any>();
   const [allUserList, setAllUserList] = useState<any>();
   const [twoLevelLeaveApproveOptions, setTwoLevelLeaveApproveOptions] = useState<any[]>([{id: "YES", value: "Yes"}, {id: "NO", value: "No"}]);
-  const [positions, setPositions] = useState<any[]>([{id: "MANAGER", value: "Manager"}, {id: "DEVELOPER", value: "Developer"}]);
   const [isShowNewPassword, setIsShowNewPassword] = useState<boolean>(false);
   const [page, setPage] = useState(1);
 
@@ -639,38 +638,6 @@ const AdminUserManagement = () => {
               {errors.role && (
                 <div className="login-error mt-2">
                   <Label title={"Please Select Role."} modeError={true} />
-                </div>
-              )}
-            </Col>
-
-            <Col lg={12}>
-              <Controller
-                control={control}
-                name="position"
-                rules={{
-                  required: true,
-                }}
-                render={({ field }) => (
-                  <Form.Group className="mb-1 mt-3">
-                    <Form.Label>Position</Form.Label>
-                    <Form.Control
-                      as="select"
-                      {...field}
-                      className="form-select"
-                    >
-                      <option value="">Select Position</option> {/* Default placeholder */}
-                      {positions.map((role: { id: string; value: string }) => (
-                        <option key={role.id} value={role.id}>
-                          {role.value}
-                        </option>
-                      ))}
-                    </Form.Control>
-                  </Form.Group>
-                )}
-              />
-              {errors.position && (
-                <div className="login-error mt-2">
-                  <Label title={"Please Select Position."} modeError={true} />
                 </div>
               )}
             </Col>

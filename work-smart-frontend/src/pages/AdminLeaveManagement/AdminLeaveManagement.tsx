@@ -180,10 +180,10 @@ const Dashboard = () => {
   const rejectLeaveRequest = () => {
     WebService.postAPI({ action: `api/leave-requests/reject/${userInfoData?.user_info?.id}/${openedId.current}?rejectReason=${rejectReason}`, id: "status-check" })
       .then((response: any) => {
-          toast.success(response.message);
-          setShowRejectionPopup(false);
-          setShow(false);
-          getCustomers(1);
+        toast.success(response.message);
+        setShowRejectionPopup(false);
+        setShow(false);
+        getCustomers(1);
       })
       .catch((error: any) => {
         console.error("Error fetching user data", error);
@@ -193,9 +193,9 @@ const Dashboard = () => {
   const approveLeaveRequest = () => {
     WebService.postAPI({ action: `api/leave-requests/approve/${userInfoData?.user_info?.id}/${openedId.current}`, id: "status-check" })
       .then((response: any) => {
-          toast.success(response.message);
-          setShow(false);
-          getCustomers(1);
+        toast.success(response.message);
+        setShow(false);
+        getCustomers(1);
       })
       .catch((error: any) => {
         console.error("Error fetching user data", error);
@@ -224,7 +224,7 @@ const Dashboard = () => {
       leaveType: data.leaveType,
       note: data.note,
     };
-    if(daysApplied == 1){
+    if (daysApplied == 1) {
       payload["applyFor"] = data.applyFor;
     }
     const userId = userInfoData?.user_info?.id;
@@ -333,7 +333,8 @@ const Dashboard = () => {
           });
           columns.push({
             value: statusList(
-              res.list[i].leaveStatus ? res.list[i].leaveStatus : "-"
+              res.list[i].leaveStatus ? res.list[i].leaveStatus : "-",
+              res.list[i].approvedByName ? res.list[i].approvedByName : "NA"
             ),
           });
 
@@ -391,7 +392,7 @@ const Dashboard = () => {
     return (
       <div>
         <div>{type === "PRIVILEGE_LEAVE" ? "Privilege Leave" : 'Unpaid Leave'}</div>
-        <div style={{fontSize: "11px", color: "#847d7d", textWrap: "nowrap"}}>Requested On {HelperService.getFormattedDatebyText(end)}
+        <div style={{ fontSize: "11px", color: "#847d7d", textWrap: "nowrap" }}>Requested On {HelperService.getFormattedDatebyText(end)}
         </div>
       </div>
     );
@@ -471,10 +472,13 @@ const Dashboard = () => {
     );
   };
 
-  const statusList = (status: string) => {
+  const statusList = (status: string, approvedBy: string) => {
     if (status === "APPROVED") {
       return (
-        <span className="badge bg-success-subtle text-success">Approved</span>
+        <>
+          <div className="badge bg-success-subtle text-success">Approved</div>
+          <div style={{ fontSize: "11px", color: "#847d7d", textWrap: "nowrap" }}>By: {approvedBy}</div>
+        </>
       );
     } else if (status === "PENDING") {
       return (
@@ -482,9 +486,12 @@ const Dashboard = () => {
       );
     } else {
       return (
-        <span className="badge bg-secondary-subtle text-secondary">
-          {status}
-        </span>
+        <>
+          <div className="badge bg-secondary-subtle text-secondary">
+            {status}
+          </div>
+          <div style={{ fontSize: "11px", color: "#847d7d", textWrap: "nowrap" }}>By: {approvedBy}</div>
+        </>
       );
     }
   };
@@ -504,20 +511,20 @@ const Dashboard = () => {
 
   return (
     <div className="app-page page-dashboard">
-       <CancelLeave
-          isShow={showDeleteModal}
-          close={() => {
-            setDeleteModal(false);
-          }}
-          onDelete={() => {
-            onDelete();
-          }}
+      <CancelLeave
+        isShow={showDeleteModal}
+        close={() => {
+          setDeleteModal(false);
+        }}
+        onDelete={() => {
+          onDelete();
+        }}
+      />
+      <div className="d-flex justify-content-between align-items-center ">
+        <PageTitle
+          title="Admin Leave Management"
         />
-     <div className="d-flex justify-content-between align-items-center ">
-          <PageTitle
-            title="Admin Leave Management"
-          />
-        </div>
+      </div>
       <Row className="mb-3">
         {permission && permission?.isRead && (
           <Grid
@@ -655,7 +662,7 @@ const Dashboard = () => {
             </Button>
           </div>
         </Offcanvas.Body>
-      </Offcanvas> 
+      </Offcanvas>
 
       <Modal show={showRejectionPopup} onHide={() => setShowRejectionPopup(false)}>
         <Modal.Header closeButton>

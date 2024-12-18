@@ -10,6 +10,7 @@ import HelperService from "../../Services/HelperService";
 import { Controller } from "react-bootstrap-icons";
 import { reduxState } from "../../reducer/CommonReducer";
 import { useNavigate } from "react-router-dom";
+import "react-datepicker/dist/react-datepicker.css";
 import DatePicker from "react-datepicker";
 import { format, differenceInCalendarDays } from "date-fns";
 import Grid, {
@@ -216,8 +217,9 @@ const Dashboard = () => {
       toDate: format(endDate, "yyyy-MM-dd"),
       leaveType: data.leaveType,
       note: data.note,
+      appliedDays: daysApplied
     };
-    if(daysApplied == 1){
+    if (daysApplied == 1) {
       payload["applyFor"] = data.applyFor;
     }
     const userId = userInfoData?.user_info?.id;
@@ -299,7 +301,6 @@ const Dashboard = () => {
 
   const handleOnEdit = (data: any) => {
     data.note = data.description
-    console.log(data.startDate, data.endDate)
     data.fromDate = data.startDate;
     data.toDate = data.endDate;
     onEdit(data);
@@ -353,10 +354,30 @@ const Dashboard = () => {
     }
   };
 
-  const calculateDayDifference = (start: Date | null, end: Date | null): number => {
-    if (!start || !end) return 0;
-    return differenceInCalendarDays(end, start) + 1;
-  };
+  function calculateDayDifference(startDate: any, endDate: any) {
+    if (!startDate || !endDate) {
+      return 0;
+    }
+
+    const start = new Date(startDate);
+    const end = new Date(endDate);
+
+    if (start > end) {
+      return 0;
+    }
+
+    let dayDifference = 0;
+
+    while (start <= end) {
+      const day = start.getDay();
+      if (day !== 0 && day !== 6) {
+        dayDifference++;
+      }
+      start.setDate(start.getDate() + 1);
+    }
+
+    return dayDifference;
+  }
   const daysApplied = calculateDayDifference(startDate, endDate);
 
 
@@ -368,22 +389,23 @@ const Dashboard = () => {
       </div>
 
       <Row className="mb-4">
-        <Col lg={6}>
+        {/* First Card */}
+        <Col lg={6} className="d-flex">
           <Card
-            className="p-4"
+            className="p-4 flex-grow-1 h-100"
             style={{
               backgroundColor: "#74c0fc",
               color: "#fff",
               borderRadius: "10px",
             }}
           >
-            <div className="d-flex justify-content-between align-items-center">
+            <div className="d-flex justify-content-between align-items-center h-100">
               <div>
                 <h5
                   className="mb-2"
                   style={{ fontSize: "1.1rem", fontWeight: 500 }}
                 >
-                  Time Today -{" "}
+                  Today -{" "}
                   {currentTime.toLocaleDateString("en-US", {
                     weekday: "long",
                     year: "numeric",
@@ -431,7 +453,7 @@ const Dashboard = () => {
                     borderRadius: "5px",
                     fontWeight: "500",
                     fontSize: "12px",
-                    textWrap: "nowrap"
+                    textWrap: "nowrap",
                   }}
                 >
                   {isLoggedIn ? "Logout" : "Web Clock-In"}
@@ -448,14 +470,10 @@ const Dashboard = () => {
                     Other
                   </Dropdown.Toggle>
                   <Dropdown.Menu>
-                    <Dropdown.Item
-                      onClick={() => console.log("Work from home Clicked")}
-                    >
+                    <Dropdown.Item onClick={() => console.log("Work from home Clicked")}>
                       Work from home
                     </Dropdown.Item>
-                    <Dropdown.Item
-                      onClick={() => console.log("Partial Day Clicked")}
-                    >
+                    <Dropdown.Item onClick={() => console.log("Partial Day Clicked")}>
                       Partial Day
                     </Dropdown.Item>
                   </Dropdown.Menu>
@@ -465,16 +483,17 @@ const Dashboard = () => {
           </Card>
         </Col>
 
-        <Col lg={6}>
+        {/* Second Card */}
+        <Col lg={6} className="d-flex">
           <Card
-            className="p-4"
+            className="p-4 flex-grow-1 h-100"
             style={{
               backgroundColor: "#d0c4a1",
               color: "#000",
               borderRadius: "10px",
             }}
           >
-            <div className="d-flex justify-content-between align-items-center">
+            <div className="d-flex justify-content-between align-items-center h-100">
               <div>
                 <h5
                   className="mb-3"
@@ -499,7 +518,9 @@ const Dashboard = () => {
                     >
                       <span style={{ fontSize: "1.5rem", fontWeight: "bold" }}>∞</span>
                     </div>
-                    <p className="mt-2 mb-0" style={{ fontSize: "0.9rem", color: "white" }}>UNPAID LEAVE</p>
+                    <p className="mt-2 mb-0" style={{ fontSize: "0.9rem", color: "white" }}>
+                      UNPAID LEAVE
+                    </p>
                   </div>
 
                   {/* Privilege Leave */}
@@ -516,13 +537,16 @@ const Dashboard = () => {
                         margin: "auto",
                       }}
                     >
-                      <span style={{ fontSize: "1rem", fontWeight: "bold" }}>{totalLeaves.current}</span>
+                      <span style={{ fontSize: "1rem", fontWeight: "bold" }}>
+                        {totalLeaves.current}
+                      </span>
                     </div>
-                    <p className="mt-2 mb-0" style={{ fontSize: "0.9rem", color: "white" }}>PRIVILEGE LEAVE</p>
+                    <p className="mt-2 mb-0" style={{ fontSize: "0.9rem", color: "white" }}>
+                      PRIVILEGE LEAVE
+                    </p>
                   </div>
                 </div>
               </div>
-
               <div style={{ textAlign: "right" }}>
                 <a
                   className="mb-2"

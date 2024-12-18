@@ -57,9 +57,7 @@ public class User {
     
 	@Column(name = "reporting_manager", nullable = true, unique = false)
     private Long reporting_manager;
-	
-	private String position;
-	
+		
 	private String twoLevelLeaveApprove;
     
     @ManyToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL)

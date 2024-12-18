@@ -60,7 +60,7 @@ public interface LeaveRequestRepository extends JpaRepository<LeaveRequest, Long
 	        "AND (:endDate IS NULL OR lr.endDate <= :endDate) " +
 	        "AND (:leaveType IS NULL OR lr.leaveType = :leaveType) " +
 	        "AND (:leaveStatus IS NULL OR lr.leaveStatus = :leaveStatus) " +
-	        "AND (:userId IS NULL OR u.reporting_manager = :userId) " +
+	        "AND (u.reporting_manager = :userId) " +
 	        "ORDER BY lr.id DESC")
 	Page<LeaveRequestResponse> findFilteredLeaveRequests(
 	        @Param("keyword") String keyword,

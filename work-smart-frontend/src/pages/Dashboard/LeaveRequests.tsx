@@ -232,6 +232,7 @@ const Dashboard = () => {
       toDate: format(endDate, "yyyy-MM-dd"),
       leaveType: data.leaveType,
       note: data.note,
+      appliedDays: daysApplied
     };
     if (daysApplied == 1) {
       payload["applyFor"] = data.applyFor;
@@ -342,10 +343,10 @@ const Dashboard = () => {
           });
           columns.push({
             value: statusList(
-              res.list[i].leaveStatus ? res.list[i].leaveStatus : "-"
+              res.list[i].leaveStatus ? res.list[i].leaveStatus : "-",
+              res.list[i].approvedByName ? res.list[i].approvedByName : "NA"
             ),
           });
-
           columns.push({
             value:
               res.list[i].username ? res.list[i].username : "-",
@@ -479,10 +480,13 @@ const Dashboard = () => {
     );
   }
 
-  const statusList = (status: string) => {
+  const statusList = (status: string, approvedBy: string) => {
     if (status === "APPROVED") {
       return (
-        <span className="badge bg-success-subtle text-success">Approved</span>
+        <>
+          <div className="badge bg-success-subtle text-success">Approved</div>
+          <div style={{ fontSize: "11px", color: "#847d7d", textWrap: "nowrap" }}>By: {approvedBy}</div>
+        </>
       );
     } else if (status === "PENDING") {
       return (
@@ -490,9 +494,12 @@ const Dashboard = () => {
       );
     } else {
       return (
-        <span className="badge bg-secondary-subtle text-secondary">
-          {status}
-        </span>
+        <>
+          <div className="badge bg-secondary-subtle text-secondary">
+            {status}
+          </div>
+          <div style={{ fontSize: "11px", color: "#847d7d", textWrap: "nowrap" }}>By: {approvedBy}</div>
+        </>
       );
     }
   };
@@ -502,10 +509,30 @@ const Dashboard = () => {
     getCustomers(data, value, startDate, endDate);
   };
 
-  const calculateDayDifference = (start: Date | null, end: Date | null): number => {
-    if (!start || !end) return 0;
-    return differenceInCalendarDays(end, start) + 1;
-  };
+  function calculateDayDifference(startDate: any, endDate: any) {
+    if (!startDate || !endDate) {
+      return 0;
+    }
+  
+    const start = new Date(startDate);
+    const end = new Date(endDate);
+  
+    if (start > end) {
+      return 0;
+    }
+  
+    let dayDifference = 0;
+  
+    while (start <= end) {
+      const day = start.getDay(); 
+      if (day !== 0 && day !== 6) { 
+        dayDifference++;
+      }
+      start.setDate(start.getDate() + 1); 
+    }
+  
+    return dayDifference;
+  }
   const daysApplied = calculateDayDifference(startDate, endDate);
 
   const { hours, minutes, seconds, ampm } = formatTime();
