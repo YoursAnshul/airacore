@@ -547,7 +547,7 @@ const Dashboard = () => {
         <Offcanvas.Body className="form-style d-flex flex-column">
           <form className="mb-3 flex-grow-1" onSubmit={handleSubmit(requestLeave)}>
             {/* Date Selection */}
-            <div className="d-flex justify-content-between align-items-center">
+            <div className="d-flex justify-content-between align-items-center gap-2">
               <div className="col-6">
                 <label>From</label>
                 <DatePicker
@@ -555,6 +555,7 @@ const Dashboard = () => {
                   onChange={(date: Date) => setStartDate(date)}
                   // minDate={new Date()}
                   selectsStart
+                  disabled={true}
                   startDate={startDate}
                   endDate={endDate}
                   className="form-control"
@@ -565,6 +566,7 @@ const Dashboard = () => {
                 <label>To</label>
                 <DatePicker
                   selected={endDate}
+                  disabled={true}
                   onChange={(date: Date) => setEndDate(date)}
                   minDate={startDate || new Date()}
                   selectsEnd
@@ -611,6 +613,7 @@ const Dashboard = () => {
               <>
                 <label className="mt-3">Apply For</label>
                 <select
+                   disabled={true}
                   className="form-control"
                   {...register("applyFor", { required: true })}
                 >
@@ -631,6 +634,7 @@ const Dashboard = () => {
             {/* Notes */}
             <label className="mt-3">Note</label>
             <textarea
+              disabled={true}
               className="form-control"
               placeholder="Type here"
               rows={3}

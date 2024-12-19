@@ -26,8 +26,9 @@ public interface UserRepository extends JpaRepository<User, Long> {
 
 	@Query("SELECT u.id AS id, u.firstName AS firstName, u.lastName AS lastName, u.email AS email, "
 			+ "u.mobileNumber AS mobileNumber, u.role AS role, r.name AS roleName, "
-			+ "u.createdDate AS createdDate, u.status AS status " + "FROM User u " + "JOIN Role r ON u.role = r.id "
-			+ "WHERE u.status = 'ACTIVE' "
+			+ "u.createdDate AS createdDate, u.status AS status, "
+			+ "u.reporting_manager AS reporting_manager, u.twoLevelLeaveApprove AS twoLevelLeaveApprove "
+			+ "FROM User u " + "JOIN Role r ON u.role = r.id " + "WHERE u.status = 'ACTIVE' "
 			+ "AND (:keyword IS NULL OR LOWER(u.firstName) LIKE LOWER(:keyword) OR LOWER(u.lastName) LIKE LOWER(:keyword)) "
 			+ "AND (:dateFrom IS NULL OR u.createdDate >= :dateFrom) "
 			+ "AND (:dateTo IS NULL OR u.createdDate <= :dateTo)")
@@ -44,8 +45,7 @@ public interface UserRepository extends JpaRepository<User, Long> {
 			@Param("dateTo") Date dateTo);
 
 	Optional<User> findByEmailAndStatus(String email, Status active);
-		
-	List<User> findByStatusAndRole(Status active, Long id);
 
+	List<User> findByStatusAndRole(Status active, Long id);
 
 }

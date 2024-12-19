@@ -492,13 +492,25 @@ const Dashboard = () => {
       return (
         <span className="badge bg-warning-subtle text-secondary">Pending</span>
       );
+    } else if (status === "REJECTED") {
+      return (
+        <>
+          <span className="badge bg-danger-subtle text-danger">Rejected</span>
+          <div style={{ fontSize: "11px", color: "#847d7d", textWrap: "nowrap" }}>By: {approvedBy}</div>
+        </>
+      );
+    } else if (status === "CANCELLED") {
+      return (
+        <>
+          <span className="badge bg-danger-subtle text-danger">Cancelled</span>
+        </>
+      );
     } else {
       return (
         <>
           <div className="badge bg-secondary-subtle text-secondary">
             {status}
           </div>
-          <div style={{ fontSize: "11px", color: "#847d7d", textWrap: "nowrap" }}>By: {approvedBy}</div>
         </>
       );
     }
@@ -513,24 +525,24 @@ const Dashboard = () => {
     if (!startDate || !endDate) {
       return 0;
     }
-  
+
     const start = new Date(startDate);
     const end = new Date(endDate);
-  
+
     if (start > end) {
       return 0;
     }
-  
+
     let dayDifference = 0;
-  
+
     while (start <= end) {
-      const day = start.getDay(); 
-      if (day !== 0 && day !== 6) { 
+      const day = start.getDay();
+      if (day !== 0 && day !== 6) {
         dayDifference++;
       }
-      start.setDate(start.getDate() + 1); 
+      start.setDate(start.getDate() + 1);
     }
-  
+
     return dayDifference;
   }
   const daysApplied = calculateDayDifference(startDate, endDate);

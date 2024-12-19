@@ -297,7 +297,9 @@ public class UserService {
         existingUser.setMobileNumber(userRequest.getMobileNumber());
         existingUser.setEmail(userRequest.getEmail());
         existingUser.setStatus(userRequest.getStatus());
-
+        existingUser.setTwoLevelLeaveApprove(userRequest.getTwoLevelLeaveApprove());
+        
+        existingUser.setReporting_manager(userRequest.getReporting_manager());
         Role role = roleRepository.findById(Long.valueOf(userRequest.getRole()))
                 .orElseThrow(() -> new EntityNotFoundException("Role not found with id: " + userRequest.getRole()));
         existingUser.getRoles().clear();

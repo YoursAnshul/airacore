@@ -58,7 +58,6 @@ public class LeaveRequestService {
 					user.setTotalLeave(user.getTotalLeave() - 0.5);
 					userRepository.save(user);
 				}
-				leaveRequest.setApplyType(AplyType.valueOf(leaveRequestDTO.getApplyFor()));
 			} else {
 				user.setTotalLeave(user.getTotalLeave() - daysRequested);
 				userRepository.save(user);
@@ -67,6 +66,7 @@ public class LeaveRequestService {
 		}
 
 		leaveRequest.setUserId(userId);
+		leaveRequest.setApplyType(AplyType.valueOf(leaveRequestDTO.getApplyFor()));
 		leaveRequest.setStartDate(leaveRequestDTO.getFromDate());
 		leaveRequest.setEndDate(leaveRequestDTO.getToDate());
 		leaveRequest.setAppliedDays(leaveRequestDTO.getAppliedDays());
@@ -190,6 +190,9 @@ public class LeaveRequestService {
 		if (!existingRequest.getUserId().equals(userId)) {
 			throw new RuntimeException("Unauthorized action");
 		}
+		if(existingRequest.getLeaveStatus().equals(LeaveStatus.REJECTED)) {
+			throw new RuntimeException("Rejected Leave can not cancel");
+		}
 
 		LocalDate today = LocalDate.now();
 		LocalDate leaveStartDate = existingRequest.getStartDate().toInstant().atZone(ZoneId.systemDefault())
@@ -256,12 +259,18 @@ public class LeaveRequestService {
 		User requestedBy = userRepository.findById(leaveRequest.getUserId())
 				.orElseThrow(() -> new RuntimeException("Requested User not found"));
 
+		if(leaveRequest.getLeaveStatus().equals(LeaveStatus.APPROVED)) {
+			throw new RuntimeException("Request Already Approved");
+		}
+		if(leaveRequest.getLeaveStatus().equals(LeaveStatus.REJECTED)) {
+			throw new RuntimeException("Request Already Rejected");
+		}
 		leaveRequest.setApprovedBy(userId);
 		Optional<Role> roleOPT = roleRepository.findById(approver.getRole());
 		if (roleOPT.isPresent()) {
 			if (requestedBy.getTwoLevelLeaveApprove() != null
 					&& requestedBy.getTwoLevelLeaveApprove().equalsIgnoreCase("YES")) {
-				if (roleOPT.isPresent() && roleOPT.get().getName() == "ADMIN") {
+				if (roleOPT.isPresent() && roleOPT.get().getName().equalsIgnoreCase("ADMIN")) {
 					leaveRequest.setLeaveStatus(LeaveStatus.APPROVED);
 					leaveRequestRepository.save(leaveRequest);
 				} else if (approver.getId() != requestedBy.getReporting_manager()
@@ -276,6 +285,7 @@ public class LeaveRequestService {
 				}
 			} else {
 				leaveRequest.setLeaveStatus(LeaveStatus.APPROVED);
+				leaveRequestRepository.save(leaveRequest);
 			}
 		}
 	}

@@ -151,6 +151,7 @@ const AdminUserManagement = () => {
   };
 
   const handleShowAddUser = () => {
+    getAllUserList();
     reset({});
     setEditData("");
     setShowAddUser(true);
