@@ -514,6 +514,7 @@ const Dashboard = () => {
           <div className="badge bg-secondary-subtle text-secondary">
             {status}
           </div>
+          <div style={{ fontSize: "11px", color: "#847d7d", textWrap: "nowrap" }}>By: {approvedBy}</div>
         </>
       );
     }
