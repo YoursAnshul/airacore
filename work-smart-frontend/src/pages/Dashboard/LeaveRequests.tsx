@@ -361,7 +361,7 @@ const Dashboard = () => {
           columns.push({
             value: res.list[i].rejectReason ? res.list[i].rejectReason : "-",
           });
-          if (res.list[i].leaveStatus == "REJECTED") {
+          if (res.list[i].leaveStatus == "REJECTED" || res.list[i].leaveStatus == "CANCELLED") {
             columns.push({
               value: "-",
             });
