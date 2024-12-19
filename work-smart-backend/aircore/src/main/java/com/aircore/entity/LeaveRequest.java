@@ -41,7 +41,7 @@ public class LeaveRequest {
 	@Temporal(TemporalType.TIMESTAMP)
 	private Date createDate;
 	private Date updatedDate;
-	private Integer appliedDays;
+	private Double appliedDays;
 	@PrePersist
 	protected void onCreate() {
 		this.createDate = new Date();

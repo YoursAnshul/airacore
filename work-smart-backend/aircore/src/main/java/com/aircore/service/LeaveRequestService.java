@@ -42,7 +42,7 @@ public class LeaveRequestService {
 	public LeaveRequest createLeaveRequest(LeaveRequestDTO leaveRequestDTO, Long userId) {
 		User user = userRepository.findById(userId).orElseThrow(() -> new RuntimeException("User not found"));
 
-		long daysRequested = leaveRequestDTO.getAppliedDays();
+		Double daysRequested = leaveRequestDTO.getAppliedDays();
 
 		LeaveRequest leaveRequest = new LeaveRequest();
 		if (LeaveType.PRIVILEGE_LEAVE.name().equals(leaveRequestDTO.getLeaveType())) {
@@ -104,8 +104,8 @@ public class LeaveRequestService {
 
 		User user = userRepository.findById(userId).orElseThrow(() -> new RuntimeException("User not found"));
 
-		long previousDaysRequested = existingRequest.getAppliedDays();
-		long newDaysRequested = leaveRequestDTO.getAppliedDays();
+		Double previousDaysRequested = existingRequest.getAppliedDays();
+		Double newDaysRequested = leaveRequestDTO.getAppliedDays();
 
 		double leaveBalanceAdjustment = 0;
 
@@ -204,7 +204,7 @@ public class LeaveRequestService {
 		User user = userRepository.findById(userId).orElseThrow(() -> new RuntimeException("User not found"));
 
 		if (LeaveType.PRIVILEGE_LEAVE.equals(existingRequest.getLeaveType())) {
-			long daysRequested = existingRequest.getAppliedDays();
+			Double daysRequested = existingRequest.getAppliedDays();
 
 			if (AplyType.FIRST_HALF.equals(existingRequest.getApplyType())
 					|| AplyType.SECOND_HALF.equals(existingRequest.getApplyType())) {
@@ -234,7 +234,7 @@ public class LeaveRequestService {
 				.orElseThrow(() -> new RuntimeException("User not found"));
 
 		if (LeaveType.PRIVILEGE_LEAVE.equals(leaveRequest.getLeaveType())) {
-			long daysRequested = leaveRequest.getAppliedDays();
+			Double daysRequested = leaveRequest.getAppliedDays();
 
 			if (AplyType.FIRST_HALF.equals(leaveRequest.getApplyType())
 					|| AplyType.SECOND_HALF.equals(leaveRequest.getApplyType())) {

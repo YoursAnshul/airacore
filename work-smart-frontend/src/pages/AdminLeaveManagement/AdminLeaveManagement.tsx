@@ -82,6 +82,7 @@ const Dashboard = () => {
   const [startDate, setStartDate] = useState<Date | null>(null);
   const [endDate, setEndDate] = useState<Date | null>(null);
   const openedId = useRef<number>(0);
+  const openedStatus = useRef<string>("");
   const [showDeleteModal, setDeleteModal] = useState<boolean>(false);
 
   const {
@@ -94,6 +95,7 @@ const Dashboard = () => {
     reset,
     setValue
   } = useForm<any>();
+  const watchAllFields = watch();
 
   const handleCloseAddUser = () => {
     setShow(false);
@@ -324,7 +326,7 @@ const Dashboard = () => {
           let columns: GridColumn[] = [];
           // columns.push({ value: `${page - 1}${Number(i) + 1}` });
           columns.push({
-            value: leaveDate(res.list[i].startDate, res.list[i].endDate, res.list[i].applyType),
+            value: leaveDate(res.list[i].startDate, res.list[i].endDate, res.list[i].applyFor),
             type: "COMPONENT",
           });
           columns.push({
@@ -351,10 +353,16 @@ const Dashboard = () => {
           columns.push({
             value: res.list[i].rejectReason ? res.list[i].rejectReason : "-",
           });
-          columns.push({
-            value: actionList(Number(i), "ACTION", res.list[i]),
-            type: "COMPONENT",
-          });
+          if (res.list[i].leaveStatus == "REJECTED") {
+            columns.push({
+              value: "-",
+            });
+          } else {
+            columns.push({
+              value: actionList(Number(i), "ACTION", res.list[i]),
+              type: "COMPONENT",
+            });
+          }
           rowCompute.current.push({ data: columns });
           rows.push({ data: columns });
         }
@@ -375,6 +383,7 @@ const Dashboard = () => {
     if (type == 'FIRST_HALF' || type == 'SECOND_HALF') {
       dayDifference = 0.5;
     }
+    console.log("dayDifference--------->", type, dayDifference)
     return (
       <div>
         <div>
@@ -403,6 +412,7 @@ const Dashboard = () => {
     setStartDate(new Date(val.startDate));
     setEndDate(new Date(val.endDate));
     openedId.current = val.id;
+    openedStatus.current = val.leaveStatus;
     // setEditData(val);
     // setShowPassword(false);
     // setShowAddUser(true);
@@ -439,6 +449,7 @@ const Dashboard = () => {
     data.fromDate = data.startDate;
     data.toDate = data.endDate;
     openedId.current = data.id;
+    openedStatus.current = data.leaveStatus;
     onEdit(data);
     reset(data);
     setShow(true);
@@ -484,13 +495,25 @@ const Dashboard = () => {
       return (
         <span className="badge bg-warning-subtle text-secondary">Pending</span>
       );
+    } else if (status === "REJECTED") {
+      return (
+        <>
+          <span className="badge bg-danger-subtle text-danger">Rejected</span>
+          <div style={{ fontSize: "11px", color: "#847d7d", textWrap: "nowrap" }}>By: {approvedBy}</div>
+        </>
+      );
+    } else if (status === "CANCELLED") {
+      return (
+        <>
+          <span className="badge bg-danger-subtle text-danger">Cancelled</span>
+        </>
+      );
     } else {
       return (
         <>
           <div className="badge bg-secondary-subtle text-secondary">
             {status}
           </div>
-          <div style={{ fontSize: "11px", color: "#847d7d", textWrap: "nowrap" }}>By: {approvedBy}</div>
         </>
       );
     }
@@ -501,10 +524,33 @@ const Dashboard = () => {
     getCustomers(data, value, startDate, endDate);
   };
 
-  const calculateDayDifference = (start: Date | null, end: Date | null): number => {
-    if (!start || !end) return 0;
-    return differenceInCalendarDays(end, start) + 1;
-  };
+  function calculateDayDifference(startDate: any, endDate: any) {
+    if (!startDate || !endDate) {
+      return 0;
+    }
+
+    const start = new Date(startDate);
+    const end = new Date(endDate);
+
+    if (start > end) {
+      return 0;
+    }
+
+    let dayDifference = 0;
+
+    while (start <= end) {
+      const day = start.getDay();
+      if (day !== 0 && day !== 6) {
+        dayDifference++;
+      }
+      start.setDate(start.getDate() + 1);
+    }
+
+    if(watchAllFields.applyFor == "FIRST_HALF" || watchAllFields.applyFor == "SECOND_HALF"){
+      return 0.5;
+    }
+    return dayDifference;
+  }
   const daysApplied = calculateDayDifference(startDate, endDate);
 
   const { hours, minutes, seconds, ampm } = formatTime();
@@ -609,11 +655,11 @@ const Dashboard = () => {
               </div>
             )} */}
 
-            {daysApplied == 1 ?
+            {daysApplied == 1  || daysApplied == 0.5  ?
               <>
                 <label className="mt-3">Apply For</label>
                 <select
-                   disabled={true}
+                  disabled={true}
                   className="form-control"
                   {...register("applyFor", { required: true })}
                 >
@@ -656,14 +702,16 @@ const Dashboard = () => {
             >
               Reject
             </Button>
-            <Button
-              type="submit"
-              className="btn-brand-1"
-              style={{ backgroundColor: "#6c63ff", borderColor: "#6c63ff" }}
-              onClick={handleSubmit(approveLeaveRequest)}
-            >
-              Approve
-            </Button>
+            {openedStatus?.current != "APPROVED" &&
+              <Button
+                type="submit"
+                className="btn-brand-1"
+                style={{ backgroundColor: "#6c63ff", borderColor: "#6c63ff" }}
+                onClick={handleSubmit(approveLeaveRequest)}
+              >
+                Approve
+              </Button>
+            }
           </div>
         </Offcanvas.Body>
       </Offcanvas>

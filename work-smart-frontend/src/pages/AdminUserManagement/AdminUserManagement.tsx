@@ -98,6 +98,7 @@ const AdminUserManagement = () => {
   const [isShowNewPassword, setIsShowNewPassword] = useState<boolean>(false);
   const [page, setPage] = useState(1);
   const [ adminId, setAdminId ] = useState(0);
+  const [ empId, setEmpId ] = useState(0);
 
   useEffect(() => {
     if (
@@ -168,6 +169,8 @@ const AdminUserManagement = () => {
           temp.push({ id: res[i].id, value: res[i].name });
           if(res[i].name == "ADMIN"){
             setAdminId(res[i].id);
+          } else if (res[i].name == "EMPLOYEE") {
+            setEmpId(res[i].id);
           }
         }
         setAllRoleList(temp);
@@ -659,7 +662,7 @@ const AdminUserManagement = () => {
                 control={control}
                 name="twoLevelLeaveApprove"
                 rules={{
-                  required: false,
+                  required: true,
                 }}
                 render={({ field }) => (
                   <Form.Group className="mb-1 mt-3">
@@ -679,6 +682,11 @@ const AdminUserManagement = () => {
                   </Form.Group>
                 )}
               />
+               {errors.twoLevelLeaveApprove && (
+                <div className="login-error mt-2">
+                  <Label title={"Please Select two level leave approve required or not."} modeError={true} />
+                </div>
+              )}
             </Col>
 
             <Col lg={12}>
@@ -687,7 +695,12 @@ const AdminUserManagement = () => {
                 control={control}
                 name="reporting_manager"
                 rules={{
-                  required: false,
+                  validate: (value) => {
+                     if(watchAllFields.role == empId) {
+                      return value ? true : "Reporting Manager is required for employee";
+                    }
+                     return true; 
+                  }
                 }}
                 render={({ field }) => (
                   <Form.Group className="mb-1 mt-3">
@@ -697,7 +710,7 @@ const AdminUserManagement = () => {
                       {...field}
                       className="form-select"
                     >
-                      <option value="">Select Reporting Manager</option> {/* Default placeholder */}
+                      <option value="">Select Reporting Manager</option>
                       {allUserList.map((role: { id: number; value: string }) => (
                         <option key={role.id} value={role.id}>
                           {role.value}
@@ -708,6 +721,11 @@ const AdminUserManagement = () => {
                 )}
               />
             )}
+             {errors.reporting_manager && (
+                <div className="login-error mt-2">
+                  <Label title={"Please Select Reporting Manager."} modeError={true} />
+                </div>
+              )}
             </Col>
 
             <Button

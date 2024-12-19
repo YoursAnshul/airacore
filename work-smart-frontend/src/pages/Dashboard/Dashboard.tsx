@@ -82,6 +82,7 @@ const Dashboard = () => {
     reset,
     setValue
   } = useForm<any>();
+  const watchAllFields = watch();
 
   const handleCloseAddUser = () => {
     setShow(false);
@@ -221,6 +222,13 @@ const Dashboard = () => {
     };
     if (daysApplied == 1) {
       payload["applyFor"] = data.applyFor;
+    }
+    if(daysApplied == 1) {
+      if(data.applyFor == "FIRST_HALF" || data.applyFor == "SECOND_HALF"){
+        payload["appliedDays"] = 0.5
+      } else {
+        payload["appliedDays"] = 1
+      }
     }
     const userId = userInfoData?.user_info?.id;
 
@@ -376,12 +384,21 @@ const Dashboard = () => {
       start.setDate(start.getDate() + 1);
     }
 
+    if(watchAllFields.applyFor == "FIRST_HALF" || watchAllFields.applyFor == "SECOND_HALF"){
+      return 0.5;
+    }
     return dayDifference;
   }
   const daysApplied = calculateDayDifference(startDate, endDate);
-
-
+  const today = new Date();
+  const thirtyDaysOld = new Date();
+  thirtyDaysOld.setDate(today.getDate() - 30);
   const { hours, minutes, seconds, ampm } = formatTime();
+
+  const handleOnchangeApplyFor = () => {
+
+  }
+
   return (
     <div className="app-page page-dashboard">
       <div className="d-flex justify-content-between mb-4 align-items-center">
@@ -619,7 +636,7 @@ const Dashboard = () => {
                 <DatePicker
                   selected={startDate}
                   onChange={(date: Date) => setStartDate(date)}
-                  // minDate={new Date()}
+                  minDate={thirtyDaysOld}
                   selectsStart
                   startDate={startDate}
                   endDate={endDate}
@@ -673,7 +690,7 @@ const Dashboard = () => {
               </div>
             )}
 
-            {daysApplied == 1 ?
+            {daysApplied == 1  || daysApplied == 0.5 ?
               <>
                 <label className="mt-3">Apply For</label>
                 <select
@@ -683,7 +700,7 @@ const Dashboard = () => {
                   <option value="">Select</option>
                   <option value="FIRST_HALF">First half</option>
                   <option value="SECOND_HALF">Second half</option>
-                  <option value="FULL_DAY" disabled={daysApplied > totalLeaves.current}>Full day</option>
+                  <option value="FULL_DAY">Full day</option>
                 </select>
                 {errors.applyFor && (
                   <div className="login-error">

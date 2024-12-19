@@ -95,6 +95,7 @@ const Dashboard = () => {
     reset,
     setValue
   } = useForm<any>();
+  const watchAllFields = watch();
 
   const handleCloseAddUser = () => {
     setShow(false);
@@ -334,7 +335,7 @@ const Dashboard = () => {
           let columns: GridColumn[] = [];
           // columns.push({ value: `${page - 1}${Number(i) + 1}` });
           columns.push({
-            value: leaveDate(res.list[i].startDate, res.list[i].endDate, res.list[i].applyType),
+            value: leaveDate(res.list[i].startDate, res.list[i].endDate, res.list[i].applyFor),
             type: "COMPONENT",
           });
           columns.push({
@@ -360,10 +361,16 @@ const Dashboard = () => {
           columns.push({
             value: res.list[i].rejectReason ? res.list[i].rejectReason : "-",
           });
-          columns.push({
-            value: actionList(Number(i), "ACTION", res.list[i]),
-            type: "COMPONENT",
-          });
+          if (res.list[i].leaveStatus == "REJECTED") {
+            columns.push({
+              value: "-",
+            });
+          } else {
+            columns.push({
+              value: actionList(Number(i), "ACTION", res.list[i]),
+              type: "COMPONENT",
+            });
+          }
           rowCompute.current.push({ data: columns });
           rows.push({ data: columns });
         }
@@ -542,12 +549,17 @@ const Dashboard = () => {
       }
       start.setDate(start.getDate() + 1);
     }
-
+    if(watchAllFields.applyFor == "FIRST_HALF" || watchAllFields.applyFor == "SECOND_HALF"){
+      return 0.5;
+    }
     return dayDifference;
   }
   const daysApplied = calculateDayDifference(startDate, endDate);
 
   const { hours, minutes, seconds, ampm } = formatTime();
+  const today = new Date();
+  const thirtyDaysOld = new Date();
+  thirtyDaysOld.setDate(today.getDate() - 30);
 
   return (
     <div className="app-page page-dashboard">
@@ -621,7 +633,7 @@ const Dashboard = () => {
                 <DatePicker
                   selected={startDate}
                   onChange={(date: Date) => setStartDate(date)}
-                  // minDate={new Date()}
+                  minDate={thirtyDaysOld}
                   selectsStart
                   startDate={startDate}
                   endDate={endDate}
@@ -675,7 +687,7 @@ const Dashboard = () => {
               </div>
             )} */}
 
-            {daysApplied == 1 ?
+            {daysApplied == 1  || daysApplied == 0.5  ?
               <>
                 <label className="mt-3">Apply For</label>
                 <select

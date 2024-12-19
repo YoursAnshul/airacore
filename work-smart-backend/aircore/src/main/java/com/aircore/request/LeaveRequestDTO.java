@@ -15,5 +15,5 @@ public class LeaveRequestDTO {
     private String leaveType;
     private String note;
     private String applyFor;
-    private Integer appliedDays;
+    private Double appliedDays;
 }
