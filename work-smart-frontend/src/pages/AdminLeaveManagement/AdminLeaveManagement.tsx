@@ -665,7 +665,7 @@ const Dashboard = () => {
                 >
                   <option value="">Select</option>
                   <option value="FIRST_HALF">First half</option>
-                  <option value="SECOND_HALF" disabled={daysApplied > totalLeaves.current}>Second half</option>
+                  <option value="SECOND_HALF">Second half</option>
                   <option value="FULL_DAY">Full day</option>
                 </select>
                 {errors.applyFor && (

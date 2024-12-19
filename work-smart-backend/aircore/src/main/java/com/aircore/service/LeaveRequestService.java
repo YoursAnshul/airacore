@@ -66,7 +66,9 @@ public class LeaveRequestService {
 		}
 
 		leaveRequest.setUserId(userId);
-		leaveRequest.setApplyType(AplyType.valueOf(leaveRequestDTO.getApplyFor()));
+		if(leaveRequestDTO.getApplyFor() != null) {
+			leaveRequest.setApplyType(AplyType.valueOf(leaveRequestDTO.getApplyFor()));
+		}
 		leaveRequest.setStartDate(leaveRequestDTO.getFromDate());
 		leaveRequest.setEndDate(leaveRequestDTO.getToDate());
 		leaveRequest.setAppliedDays(leaveRequestDTO.getAppliedDays());
