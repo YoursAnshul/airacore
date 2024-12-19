@@ -235,7 +235,7 @@ const Dashboard = () => {
       note: data.note,
       appliedDays: daysApplied
     };
-    if (daysApplied == 1) {
+    if (daysApplied == 1 || daysApplied == 0.5) {
       payload["applyFor"] = data.applyFor;
     }
     const userId = userInfoData?.user_info?.id;
